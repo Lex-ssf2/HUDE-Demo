@@ -1,24 +1,44 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useContext, useEffect, useRef, useState } from 'preact/hooks'
 import './home.css'
 import { ClaveSol } from './assets/claves'
-import type { VNode } from 'preact'
+import { type VNode } from 'preact'
+import { DisplayPentagramaContext } from './context/DisplayContext'
+import type { LineElement } from './interfaces/PentagramaInterface'
+import { DISPLAY_MODE } from './enums/Mode'
+
+const noteSize = 20
 
 export function Home() {
+  const [mode, setMode] = useState(-1)
   return (
-    <>
+    <DisplayPentagramaContext.Provider value={{ mode, setMode }}>
+      <ButtonsSelection />
       <Pentagrama />
       Sample Test <br />
       sonic <br />
       osi
       <Pentagrama />
-    </>
+    </DisplayPentagramaContext.Provider>
   )
 }
-const noteSize = 20
 
-interface LineElement {
-  vnode: VNode
-  y: number
+export function ButtonsSelection() {
+  const contexto = useContext(DisplayPentagramaContext)
+  if (!contexto) return null
+  return (
+    <>
+      {' '}
+      <button onClick={() => contexto.setMode(DISPLAY_MODE.SELECT)}>
+        Select
+      </button>
+      <button onClick={() => contexto.setMode(DISPLAY_MODE.ADD_BAR)}>
+        Compas
+      </button>
+      <button onClick={() => contexto.setMode(DISPLAY_MODE.ADD_NOTE)}>
+        Add note
+      </button>
+    </>
+  )
 }
 
 export function Pentagrama() {
@@ -26,6 +46,8 @@ export function Pentagrama() {
   const [circles, setCircles] = useState<VNode[]>([])
   const pentagramRef = useRef<HTMLElement>(null)
   const claveRef = useRef<SVGSVGElement | null>(null)
+  const contexto = useContext(DisplayPentagramaContext)
+  if (!contexto) return null
 
   useEffect(() => {
     const allLines: LineElement[] = []
@@ -45,6 +67,7 @@ export function Pentagrama() {
     setAllLines(allLines)
   }, [])
   const handleClickOnPentagram = (event: MouseEvent) => {
+    if (contexto.mode != DISPLAY_MODE.ADD_NOTE) return
     if (pentagramRef.current && claveRef.current) {
       const pentagramRect = pentagramRef.current.getBoundingClientRect()
       const clickX = event.clientX - pentagramRect.left
