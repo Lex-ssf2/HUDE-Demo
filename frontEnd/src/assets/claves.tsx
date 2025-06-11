@@ -1,4 +1,10 @@
-export function ClaveSol() {
+import type { RefObject } from 'preact'
+
+type ClaveSymbol = {
+  refProps: RefObject<SVGSVGElement>
+}
+
+export function ClaveSol({ refProps }: ClaveSymbol) {
   return (
     <svg
       class="clave-sol"
@@ -8,6 +14,7 @@ export function ClaveSol() {
       height="1280.000000pt"
       viewBox="0 0 485.000000 1280.000000"
       preserveAspectRatio="xMidYMid meet"
+      ref={refProps}
     >
       <metadata>
         Created by potrace 1.15, written by Peter Selinger 2001-2017
