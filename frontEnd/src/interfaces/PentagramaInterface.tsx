@@ -9,6 +9,8 @@ export interface NoteData {
   x: number
   y: number
   actualSize: number
+  noteName: string
+  noteNumber: number
 }
 export interface BarData {
   id: string

@@ -8,15 +8,15 @@ export const noteSize = 20
 
 export function Home() {
   const [mode, setMode] = useState(-1)
-  const [extraBar, setExtraBar] = useState(0)
+  const [selectedBar, setSelectedBar] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
   return (
     <DisplayPentagramaContext.Provider
       value={{
         mode,
         setMode,
-        extraBar,
-        setExtraBar,
+        selectedBar: selectedBar,
+        setSelectedBar: setSelectedBar,
         scrollLeft,
         setScrollLeft
       }}

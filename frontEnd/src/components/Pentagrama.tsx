@@ -20,7 +20,7 @@ export function Pentagrama() {
   const contexto = useContext(DisplayPentagramaContext)
   if (!contexto) return null
 
-  const { mode, setExtraBar } = contexto
+  const { mode, setSelectedBar } = contexto
 
   const allLines = usePentagramLines()
   const [bars, setBars] = useBarManagement()
@@ -36,16 +36,16 @@ export function Pentagrama() {
   const handleClickOnPentagram = useCallback(() => {
     if (mode !== DISPLAY_MODE.ADD_BAR) return
     if (pentagramRef.current && claveRef.current) {
-      setExtraBar(bars.length)
+      setSelectedBar(bars.length)
     }
-  }, [mode, pentagramRef, claveRef, setExtraBar, bars.length])
+  }, [mode, pentagramRef, claveRef, setSelectedBar, bars.length])
 
   const handleClickOnBar = useCallback(
     (barId: string, event: MouseEvent, currentId: number) => {
       event.stopPropagation() //To avoid calling multiple functions :p
 
       if (mode === DISPLAY_MODE.ADD_BAR || mode === DISPLAY_MODE.REMOVE_BAR) {
-        setExtraBar(currentId)
+        setSelectedBar(currentId)
         return
       }
       if (mode === DISPLAY_MODE.ADD_NOTE) {
@@ -53,7 +53,7 @@ export function Pentagrama() {
         return
       }
     },
-    [mode, setExtraBar, addNoteToBar]
+    [mode, setSelectedBar, addNoteToBar]
   )
 
   const claveFullSize =

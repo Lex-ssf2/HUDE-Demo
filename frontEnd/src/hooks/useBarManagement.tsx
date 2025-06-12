@@ -19,10 +19,10 @@ export function useBarManagement() {
     return [bars, setBars] as const
   }
 
-  const { extraBar, setExtraBar, mode } = contexto
+  const { setSelectedBar, selectedBar, mode } = contexto
 
   useEffect(() => {
-    if (extraBar === -1) return
+    if (selectedBar === -1) return
 
     setBars((prevBars) => {
       const tempBars = [...prevBars]
@@ -31,17 +31,17 @@ export function useBarManagement() {
         .substring(2, 9)}`
 
       if (mode === DISPLAY_MODE.REMOVE_BAR) {
-        if (extraBar >= 0 && extraBar < tempBars.length) {
-          tempBars.splice(extraBar, 1)
+        if (selectedBar >= 0 && selectedBar < tempBars.length) {
+          tempBars.splice(selectedBar, 1)
         }
       } else {
-        tempBars.splice(extraBar + 1, 0, { id: newBarId, notes: [] })
+        tempBars.splice(selectedBar + 1, 0, { id: newBarId, notes: [] })
       }
       return tempBars
     })
 
-    setExtraBar(-1) // Reset the trigger clicking the same dumb bar and allow "cascade"
-  }, [extraBar, setExtraBar, mode])
+    setSelectedBar(-1) // Reset the trigger clicking the same dumb bar and allow "cascade"
+  }, [selectedBar, setSelectedBar, mode])
 
   return [bars, setBars] as const
 }
