@@ -19,13 +19,25 @@ const noteSize = 20
 
 export function Home() {
   const [mode, setMode] = useState(-1)
+  const [extraBar, setExtraBar] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
   return (
-    <DisplayPentagramaContext.Provider value={{ mode, setMode }}>
+    <DisplayPentagramaContext.Provider
+      value={{
+        mode,
+        setMode,
+        extraBar,
+        setExtraBar,
+        scrollLeft,
+        setScrollLeft
+      }}
+    >
       <ButtonsSelection />
       <Pentagrama />
       Sample Test <br />
       sonic <br />
       osi
+      <Pentagrama />
       <Pentagrama />
     </DisplayPentagramaContext.Provider>
   )
@@ -60,8 +72,6 @@ export function ButtonsSelection() {
   )
 }
 
-const barSize = 200
-
 export function Pentagrama() {
   const [allLines, setAllLines] = useState<LineElement[]>([])
   const [bars, setBars] = useState<BarData[]>([])
@@ -69,6 +79,7 @@ export function Pentagrama() {
   const barsContainerRef = useRef<HTMLElement>(null)
   const claveRef = useRef<SVGSVGElement | null>(null)
   const contexto = useContext(DisplayPentagramaContext)
+  const isProgrammaticScrollRef = useRef(false)
   if (!contexto) return null
 
   useEffect(() => {
@@ -88,31 +99,74 @@ export function Pentagrama() {
     }
     setAllLines(allLines)
   }, [])
-  const handleClickOnPentagram = useCallback(() => {
-    if (contexto.mode !== DISPLAY_MODE.ADD_BAR) return
-    if (pentagramRef.current && claveRef.current) {
+
+  //All this shit is to synch multiples scroll, this sucks ass but I dont want to re-do everything for a demo
+  useEffect(() => {
+    const barsContainer = barsContainerRef.current
+    if (!barsContainer) return
+
+    const handleScroll = () => {
+      if (!isProgrammaticScrollRef.current) {
+        contexto.setScrollLeft(barsContainer.scrollLeft)
+      }
+      isProgrammaticScrollRef.current = false
+    }
+
+    barsContainer.addEventListener('scroll', handleScroll)
+    return () => {
+      barsContainer.removeEventListener('scroll', handleScroll)
+    }
+  }, [contexto.setScrollLeft])
+  useEffect(() => {
+    const barsContainer = barsContainerRef.current
+    if (!barsContainer) return
+    if (barsContainer.scrollLeft !== contexto.scrollLeft) {
+      isProgrammaticScrollRef.current = true
+      barsContainer.scrollLeft = contexto.scrollLeft
+    }
+  }, [contexto.scrollLeft])
+  //This is where the scrollCode ends
+  //More shit to sync between Pentagramas
+  useEffect(() => {
+    if (contexto.extraBar == -1) return
+    if (contexto.mode === DISPLAY_MODE.REMOVE_BAR) {
+      setBars((prevBars) => {
+        const tempBars = [...prevBars]
+        tempBars.splice(contexto.extraBar + 1, 1)
+        return tempBars
+      })
+      contexto.setExtraBar(-1)
+      return
+    }
+    setBars((prevBars) => {
       const barId = `bar-${Date.now()}-${Math.random()
         .toString(36)
         .substring(2, 9)}`
-      setBars((prevBars) => [
-        ...prevBars,
-        { id: barId, x: barSize * prevBars.length, notes: [] }
-      ])
+      const tempBars = [...prevBars]
+      tempBars.splice(contexto.extraBar + 1, 0, {
+        id: barId,
+        notes: []
+      })
+      return tempBars
+    })
+    contexto.setExtraBar(-1)
+  }, [contexto.extraBar])
+
+  const handleClickOnPentagram = useCallback(() => {
+    if (contexto.mode !== DISPLAY_MODE.ADD_BAR) return
+    if (pentagramRef.current && claveRef.current) {
+      contexto.setExtraBar(bars.length + 5)
     }
   }, [contexto.mode, pentagramRef, claveRef])
 
   const handleClickOnBar = useCallback(
-    (barId: string, event: MouseEvent) => {
-      if (contexto.mode === DISPLAY_MODE.REMOVE_BAR) {
-        setBars((prevBars) => {
-          const updatedBars = prevBars
-            .filter((bar) => bar.id !== barId)
-            .map((bar, index) => ({
-              ...bar,
-              x: index * 200
-            }))
-          return updatedBars
-        })
+    (barId: string, event: MouseEvent, currentId: number) => {
+      event.stopPropagation()
+      if (
+        contexto.mode === DISPLAY_MODE.ADD_BAR ||
+        contexto.mode === DISPLAY_MODE.REMOVE_BAR
+      ) {
+        contexto.setExtraBar(currentId)
         return
       }
       if (contexto.mode != DISPLAY_MODE.ADD_NOTE) return
@@ -142,7 +196,8 @@ export function Pentagrama() {
             .toString(36)
             .substring(2, 9)}`,
           x: actualClickXRelativeToBar,
-          y: closestY
+          y: closestY,
+          actualSize: 100
         }
 
         setBars((prevBars) =>
@@ -182,36 +237,48 @@ export function Pentagrama() {
           marginLeft: `${claveFullSize}px`
         }}
       >
-        {bars.map((barData) => (
+        {bars.map((barData, index) => (
           <article
             key={barData.id}
             className="bar-indicator"
             style={{
               top: `0px`,
-              width: `200px`,
+              width: `auto`,
+              minWidth: '200px',
               height: `100%`,
               borderRight: '3px solid red',
-              border: '1px solid blue',
               flexShrink: 0,
+              display: 'flex',
+              flexDirection: 'row',
               position: 'relative'
             }}
-            onClick={(e) => handleClickOnBar(barData.id, e)}
+            onClick={(e) => handleClickOnBar(barData.id, e, index)}
           >
             {barData.notes.map((note) => (
               <div
                 key={note.id}
-                className="circle"
                 style={{
-                  position: 'absolute',
-                  left: `${note.x}px`,
-                  top: `${note.y}px`,
-                  width: `${noteSize}px`,
-                  height: `${noteSize}px`,
-                  borderRadius: '50%',
-                  backgroundColor: 'blue',
-                  transform: 'translate(-50%, -50%)'
+                  position: 'relative',
+                  width: `${note.actualSize}%`,
+                  height: `100%`,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'flex-start'
                 }}
-              ></div>
+              >
+                <div
+                  className="circle"
+                  style={{
+                    position: 'relative',
+                    top: `${note.y}px`,
+                    width: `${noteSize}px`,
+                    height: `${noteSize}px`,
+                    backgroundColor: 'red',
+                    borderRadius: '50%',
+                    transform: 'translate(-0%, -50%)'
+                  }}
+                />
+              </div>
             ))}
           </article>
         ))}
