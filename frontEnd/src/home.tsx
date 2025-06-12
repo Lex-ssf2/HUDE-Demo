@@ -66,6 +66,7 @@ export function Pentagrama() {
   const [allLines, setAllLines] = useState<LineElement[]>([])
   const [bars, setBars] = useState<BarData[]>([])
   const pentagramRef = useRef<HTMLElement>(null)
+  const barsContainerRef = useRef<HTMLElement>(null)
   const claveRef = useRef<SVGSVGElement | null>(null)
   const contexto = useContext(DisplayPentagramaContext)
   if (!contexto) return null
@@ -115,41 +116,33 @@ export function Pentagrama() {
         return
       }
       if (contexto.mode != DISPLAY_MODE.ADD_NOTE) return
-      if (pentagramRef.current) {
+      if (pentagramRef.current && barsContainerRef.current) {
         const pentagramRect = pentagramRef.current.getBoundingClientRect()
         const clickedBarRect = (
           event.currentTarget as HTMLElement
         ).getBoundingClientRect()
-
-        const clickXRelativeToBar = event.clientX - clickedBarRect.left
-        const clickYRelativeToPentagram = event.clientY - pentagramRect.top
-        const beatSnapSize = 200 / 4
-        const snappedNoteX =
-          Math.round(clickXRelativeToBar / beatSnapSize) * beatSnapSize
-
-        let closestY: number | null = null
+        const actualClickXRelativeToBar = event.clientX - clickedBarRect.left
+        const actualClickYGlobalToPentagram = event.clientY - pentagramRect.top
+        let closestY: number = 0
         let minDistance = Infinity
 
         allLines.forEach((lineData) => {
           const lineY = lineData.y
           const spaceY = lineData.y + noteSize / 2
           ;[lineY, spaceY].forEach((y) => {
-            const distance = Math.abs(clickYRelativeToPentagram - y)
+            const distance = Math.abs(actualClickYGlobalToPentagram - y)
             if (distance < minDistance) {
               minDistance = distance
               closestY = y
             }
           })
         })
-
-        const finalY = closestY !== null ? closestY : clickYRelativeToPentagram
-
         const newNote: NoteData = {
           id: `note-${Date.now()}-${Math.random()
             .toString(36)
             .substring(2, 9)}`,
-          x: snappedNoteX, //WIP
-          y: finalY
+          x: actualClickXRelativeToBar,
+          y: closestY
         }
 
         setBars((prevBars) =>
@@ -161,10 +154,12 @@ export function Pentagrama() {
     },
     [contexto.mode, pentagramRef, allLines]
   )
-  const claveFullSize = claveRef.current
-    ? claveRef.current.getBoundingClientRect().x +
-      claveRef.current.getBoundingClientRect().width
-    : 0
+  const claveFullSize =
+    claveRef.current && pentagramRef.current
+      ? claveRef.current.getBoundingClientRect().x -
+        pentagramRef.current.getBoundingClientRect().x +
+        claveRef.current.getBoundingClientRect().width
+      : 0
   return (
     <section
       className="pentagrama"
@@ -173,40 +168,54 @@ export function Pentagrama() {
     >
       <ClaveSol refProps={claveRef} />
       {allLines.map((lineData) => lineData.vnode)}
-      {bars.map((barData) => (
-        <div
-          key={barData.id}
-          className="bar-indicator"
-          style={{
-            position: 'absolute',
-            left: `calc(${barData.x}px + ${claveFullSize}px)`,
-            top: `0px`,
-            width: `200px`,
-            height: `100%`,
-            borderRight: '3px solid red',
-            border: '1px solid blue',
-            cursor: 'pointer'
-          }}
-          onClick={(e) => handleClickOnBar(barData.id, e)}
-        >
-          {barData.notes.map((note) => (
-            <div
-              key={note.id}
-              className="circle"
-              style={{
-                position: 'absolute',
-                left: `${note.x}px`,
-                top: `${note.y}px`,
-                width: `${noteSize}px`,
-                height: `${noteSize}px`,
-                borderRadius: '50%',
-                backgroundColor: 'blue',
-                transform: 'translate(-50%, -50%)'
-              }}
-            ></div>
-          ))}
-        </div>
-      ))}
+      <section
+        ref={barsContainerRef}
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
+          height: '100%',
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          flexShrink: 0,
+          flexGrow: 1,
+          marginLeft: `${claveFullSize}px`
+        }}
+      >
+        {bars.map((barData) => (
+          <article
+            key={barData.id}
+            className="bar-indicator"
+            style={{
+              top: `0px`,
+              width: `200px`,
+              height: `100%`,
+              borderRight: '3px solid red',
+              border: '1px solid blue',
+              flexShrink: 0,
+              position: 'relative'
+            }}
+            onClick={(e) => handleClickOnBar(barData.id, e)}
+          >
+            {barData.notes.map((note) => (
+              <div
+                key={note.id}
+                className="circle"
+                style={{
+                  position: 'absolute',
+                  left: `${note.x}px`,
+                  top: `${note.y}px`,
+                  width: `${noteSize}px`,
+                  height: `${noteSize}px`,
+                  borderRadius: '50%',
+                  backgroundColor: 'blue',
+                  transform: 'translate(-50%, -50%)'
+                }}
+              ></div>
+            ))}
+          </article>
+        ))}
+      </section>
     </section>
   )
 }
