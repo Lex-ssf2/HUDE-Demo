@@ -16,3 +16,7 @@ export interface BarData {
   id: string
   notes: NoteData[]
 }
+export interface PentagramaState {
+  id: string
+  bars: BarData[]
+}

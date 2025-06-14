@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef } from 'preact/hooks'
+import { useCallback, useContext, useEffect, useRef } from 'preact/hooks'
 import { ClaveSol } from '../assets/claves'
 import { DisplayPentagramaContext } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/Mode'
@@ -12,7 +12,13 @@ import { usePentagramLines } from '../hooks/usePentagramLines'
 
 /** You know what this does */
 
-export function Pentagrama() {
+export function Pentagrama({
+  pentagramId,
+  initialBars
+}: {
+  pentagramId: string
+  initialBars: any[]
+}) {
   const pentagramRef = useRef<HTMLElement>(null)
   const barsContainerRef = useRef<HTMLElement>(null)
   const claveRef = useRef<SVGSVGElement | null>(null)
@@ -20,10 +26,10 @@ export function Pentagrama() {
   const contexto = useContext(DisplayPentagramaContext)
   if (!contexto) return null
 
-  const { mode, setSelectedBar } = contexto
+  const { mode, setSelectedBar, updatePentagramBars, visibleUpdate } = contexto
 
   const allLines = usePentagramLines()
-  const [bars, setBars] = useBarManagement()
+  const [bars, setBars] = useBarManagement(initialBars)
   useSynchronizedScroll(barsContainerRef)
 
   const addNoteToBar = useNotePlacement(
@@ -55,6 +61,10 @@ export function Pentagrama() {
     },
     [mode, setSelectedBar, addNoteToBar]
   )
+  useEffect(() => {
+    updatePentagramBars(pentagramId, bars)
+    console.log('em que')
+  }, [bars, pentagramId, visibleUpdate])
 
   const claveFullSize =
     claveRef.current && pentagramRef.current
