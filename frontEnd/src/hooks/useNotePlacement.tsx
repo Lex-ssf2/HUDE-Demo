@@ -61,7 +61,8 @@ export function useNotePlacement(
         y: closestY,
         actualSize: 100, // WIP,
         noteName: allPosibleNotes[actualNoteName],
-        noteNumber: actualNoteNumber
+        noteNumber: actualNoteNumber,
+        currentClassId: 'nota'
       }
 
       setBars((prevBars) =>

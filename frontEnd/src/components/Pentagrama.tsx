@@ -63,7 +63,6 @@ export function Pentagrama({
   )
   useEffect(() => {
     updatePentagramBars(pentagramId, bars)
-    console.log('em que')
   }, [bars, pentagramId, visibleUpdate])
 
   const claveFullSize =

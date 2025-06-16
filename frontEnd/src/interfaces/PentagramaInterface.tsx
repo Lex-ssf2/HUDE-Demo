@@ -11,6 +11,7 @@ export interface NoteData {
   actualSize: number
   noteName: string
   noteNumber: number
+  currentClassId: string
 }
 export interface BarData {
   id: string

@@ -44,15 +44,11 @@ export function PentagramaBar({ barData, index, onClick }: PentagramaBarProps) {
           }}
         >
           <div
-            className="circle"
+            className={note.currentClassId}
             style={{
-              position: 'relative',
               top: `${note.y}px`,
               width: `${noteSize}px`,
-              height: `${noteSize}px`,
-              backgroundColor: 'red',
-              borderRadius: '50%',
-              transform: 'translate(-0%, -50%)'
+              height: `${noteSize}px`
             }}
           />
         </div>
