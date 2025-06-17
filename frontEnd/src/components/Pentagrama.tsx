@@ -9,15 +9,18 @@ import { useSynchronizedScroll } from '../hooks/useSynchronizedScroll'
 import { useBarManagement } from '../hooks/useBarManagement'
 import { useNotePlacement } from '../hooks/useNotePlacement'
 import { usePentagramLines } from '../hooks/usePentagramLines'
+import { allPosibleNotes } from '../enums/Notes'
 
 /** You know what this does */
 
 export function Pentagrama({
   pentagramId,
-  initialBars
+  initialBars,
+  barWidths // Recibimos la nueva prop de anchos de barra
 }: {
   pentagramId: string
   initialBars: any[]
+  barWidths: number[] // Definimos el tipo
 }) {
   const pentagramRef = useRef<HTMLElement>(null)
   const barsContainerRef = useRef<HTMLElement>(null)
@@ -26,7 +29,15 @@ export function Pentagrama({
   const contexto = useContext(DisplayPentagramaContext)
   if (!contexto) return null
 
-  const { mode, setSelectedBar, updatePentagramBars, visibleUpdate } = contexto
+  const {
+    mode,
+    setSelectedBar,
+    updatePentagramBars,
+    visibleUpdate,
+    selectNote,
+    setSelectNote,
+    noteDuration
+  } = contexto
 
   const allLines = usePentagramLines()
   const [bars, setBars] = useBarManagement(initialBars)
@@ -54,13 +65,124 @@ export function Pentagrama({
         setSelectedBar(currentId)
         return
       }
-      if (mode === DISPLAY_MODE.ADD_NOTE) {
-        addNoteToBar(barId, event)
+      if (mode === DISPLAY_MODE.ADD_NOTE && addNoteToBar != null) {
+        addNoteToBar(barId, noteDuration, event)
         return
       }
     },
-    [mode, setSelectedBar, addNoteToBar]
+    [mode, setSelectedBar, addNoteToBar, noteDuration]
   )
+  const handleClickOnNote = useCallback(
+    (event: MouseEvent, noteIndex: number, barIndex: number) => {
+      if (mode === DISPLAY_MODE.SELECT || mode === DISPLAY_MODE.REMOVE_NOTE) {
+        event.stopPropagation()
+        setSelectNote({
+          barIndex,
+          noteIndex,
+          note: bars[barIndex].notes[noteIndex],
+          currentPentagram: pentagramId
+        })
+        console.log('Nota seleccionada:', bars[barIndex].notes[noteIndex])
+      }
+    },
+    [mode, bars]
+  )
+  useEffect(() => {
+    if (selectNote && mode === DISPLAY_MODE.REMOVE_NOTE) {
+      const { barIndex, noteIndex, currentPentagram } = selectNote
+      if (currentPentagram != pentagramId) return
+      const copyBars = [...bars]
+      copyBars[barIndex].notes?.splice(noteIndex, 1)
+      setBars(copyBars)
+      setSelectNote(null)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (selectNote && mode === DISPLAY_MODE.SELECT) {
+        const { barIndex, noteIndex, note, currentPentagram } = selectNote
+        if (currentPentagram != pentagramId) return
+        const copyBars = [...bars]
+        let anteriorIndex
+        let tmpNote
+        let indexByNote
+        if (copyBars[barIndex].notes[noteIndex])
+          switch (event.key) {
+            case 'ArrowUp':
+              copyBars[barIndex].notes[noteIndex].y = (note.y || 0) - 10
+              indexByNote = allPosibleNotes.indexOf(
+                copyBars[barIndex].notes[noteIndex].noteName
+              )
+              copyBars[barIndex].notes[noteIndex].noteName =
+                allPosibleNotes[(indexByNote + 1) % allPosibleNotes.length]
+              copyBars[barIndex].notes[noteIndex].noteNumber++
+              setBars(copyBars)
+              setSelectNote({
+                barIndex,
+                noteIndex,
+                note: copyBars[barIndex].notes[noteIndex],
+                currentPentagram
+              })
+              break
+            case 'ArrowDown':
+              copyBars[barIndex].notes[noteIndex].y = (note.y || 0) + 10
+              indexByNote = allPosibleNotes.indexOf(
+                copyBars[barIndex].notes[noteIndex].noteName
+              )
+              copyBars[barIndex].notes[noteIndex].noteName =
+                allPosibleNotes[
+                  (indexByNote - 1 + allPosibleNotes.length) %
+                    allPosibleNotes.length
+                ]
+              copyBars[barIndex].notes[noteIndex].noteNumber--
+              setBars(copyBars)
+              setSelectNote({
+                barIndex,
+                noteIndex,
+                note: copyBars[barIndex].notes[noteIndex],
+                currentPentagram
+              })
+              break
+            case 'ArrowLeft':
+              anteriorIndex = Math.max(noteIndex - 1, 0)
+              tmpNote = copyBars[barIndex].notes[anteriorIndex]
+              copyBars[barIndex].notes[anteriorIndex] =
+                copyBars[barIndex].notes[noteIndex]
+              copyBars[barIndex].notes[noteIndex] = tmpNote
+              setSelectNote({
+                barIndex,
+                noteIndex: anteriorIndex,
+                note: copyBars[barIndex].notes[anteriorIndex],
+                currentPentagram
+              })
+              setBars(copyBars)
+              break
+            case 'ArrowRight':
+              anteriorIndex = Math.min(
+                noteIndex + 1,
+                copyBars[barIndex].notes.length - 1
+              )
+              tmpNote = copyBars[barIndex].notes[anteriorIndex]
+              copyBars[barIndex].notes[anteriorIndex] =
+                copyBars[barIndex].notes[noteIndex]
+              copyBars[barIndex].notes[noteIndex] = tmpNote
+              setSelectNote({
+                barIndex,
+                noteIndex: anteriorIndex,
+                note: copyBars[barIndex].notes[anteriorIndex],
+                currentPentagram
+              })
+              setBars(copyBars)
+              break
+            default:
+              break
+          }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectNote, bars, mode, setBars])
   useEffect(() => {
     updatePentagramBars(pentagramId, bars)
   }, [bars, pentagramId, visibleUpdate])
@@ -100,6 +222,9 @@ export function Pentagrama({
             barData={barData}
             index={index}
             onClick={handleClickOnBar}
+            noteHandler={handleClickOnNote}
+            // Pasamos el ancho específico para esta barra
+            barWidth={barWidths[index] || 200}
           />
         ))}
       </section>

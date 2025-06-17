@@ -2,7 +2,8 @@ import { createContext } from 'preact/compat'
 import type { Dispatch, SetStateAction } from 'preact/compat'
 import type {
   BarData,
-  PentagramaState
+  PentagramaState,
+  SelectedNote
 } from '../interfaces/PentagramaInterface'
 
 export const DisplayPentagramaContext = createContext<{
@@ -17,4 +18,8 @@ export const DisplayPentagramaContext = createContext<{
   updatePentagramBars: (pentagramId: string, newBars: BarData[]) => void
   visibleUpdate: boolean
   setVisibleUpdate: Dispatch<SetStateAction<boolean>>
+  selectNote: SelectedNote | null
+  setSelectNote: Dispatch<SetStateAction<SelectedNote | null>>
+  noteDuration: number
+  setNoteDuration: Dispatch<SetStateAction<number>>
 } | null>(null)

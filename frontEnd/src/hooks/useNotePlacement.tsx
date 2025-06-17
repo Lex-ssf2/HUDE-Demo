@@ -24,7 +24,7 @@ export function useNotePlacement(
   setBars: (updater: (prevBars: BarData[]) => BarData[]) => void
 ) {
   const addNoteToBar = useCallback(
-    (barId: string, event: MouseEvent) => {
+    (barId: string, noteDuration: number, event: MouseEvent) => {
       if (!pentagramRef.current || !barsContainerRef.current) return
 
       const pentagramRect = pentagramRef.current.getBoundingClientRect()
@@ -59,10 +59,11 @@ export function useNotePlacement(
         id: `note-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         x: actualClickXRelativeToBar,
         y: closestY,
-        actualSize: 100, // WIP,
+        actualSize: (1 / noteDuration) * 100, // WIP,
         noteName: allPosibleNotes[actualNoteName],
         noteNumber: actualNoteNumber,
-        currentClassId: 'nota'
+        currentClassId: 'nota',
+        duration: noteDuration
       }
 
       setBars((prevBars) =>
