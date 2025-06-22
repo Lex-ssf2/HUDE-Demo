@@ -1,0 +1,16 @@
+import { createContext } from 'preact/compat'
+import type { Dispatch, SetStateAction } from 'preact/compat'
+import type { CircleData } from '../interface/BarInterface'
+
+export const DisplayVerticalBarContext = createContext<{
+  mode: number
+  setMode: Dispatch<SetStateAction<number>>
+  currentNote: CircleData | null
+  setCurrentNote: Dispatch<SetStateAction<CircleData | null>>
+  svgViewboxWidth: number
+  setSvgViewboxWidth: Dispatch<SetStateAction<number>>
+  svgViewboxHeight: number
+  setSvgViewboxHeight: Dispatch<SetStateAction<number>>
+  currentNoteSize: number
+  setCurrentNoteSize: Dispatch<SetStateAction<number>>
+} | null>(null)

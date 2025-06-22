@@ -11,15 +11,15 @@ export function usePentagramLines(): LineElement[] {
 
   useEffect(() => {
     const lines: LineElement[] = []
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < 5; i++) {
       const currentY = i * noteSize
       lines.push({
         vnode: (
-          <div
+          <article
             key={`line-${i}`}
             className="line"
             style={{ top: `${currentY}px` }}
-          ></div>
+          ></article>
         ),
         y: currentY
       })
