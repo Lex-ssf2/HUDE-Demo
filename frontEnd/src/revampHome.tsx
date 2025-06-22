@@ -76,8 +76,13 @@ export function SvgMovableBox({
 
     const svgRect = svgRef.current.getBoundingClientRect()
     const clientY = event.clientY - svgRect.top
-    const scaleY = svgRect.height / Number(svgViewboxHeight)
-    const clickedCy = clientY / scaleY
+    const yInSvgCoords =
+      (clientY / svgRect.height) *
+      (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
+
+    // Now, adjust for the actualYOffset (the 'min-y' of your viewBox)
+    // This effectively translates the screen Y to the correct Y within the shifted viewBox coordinate system.
+    const clickedCy = yInSvgCoords + actualYOffset
 
     let actualSize = circleRadius + 10
     let lastSize = 0
@@ -116,11 +121,11 @@ export function SvgMovableBox({
     if (actualBar.length === 0) return []
     let tmpYOffset = 0
     let tmpYOffsetBottom = 0
+    let minY = Infinity
+    let maxY = -Infinity
     const updatedBar = actualBar.map((circleData) => {
-      if (tmpYOffset > circleData.cy) tmpYOffset = circleData.cy
-      const fullHeigth = svgViewboxHeight - actualYOffset
-      if (fullHeigth < circleData.cy)
-        tmpYOffsetBottom = circleData.cy - fullHeigth + newCircleRadius
+      minY = Math.min(minY, circleData.cy - newCircleRadius)
+      maxY = Math.max(maxY, circleData.cy + newCircleRadius)
       return (
         <circle
           key={circleData.id}
@@ -134,6 +139,11 @@ export function SvgMovableBox({
         />
       )
     })
+    if (tmpYOffset > minY) tmpYOffset = minY
+
+    const fullHeigth = svgViewboxHeight
+    if (fullHeigth <= maxY)
+      tmpYOffsetBottom = maxY - fullHeigth + newCircleRadius
     setActualYOffset(tmpYOffset)
     setActualYOffsetBottom(tmpYOffsetBottom)
     return updatedBar
