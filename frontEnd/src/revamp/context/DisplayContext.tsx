@@ -14,3 +14,8 @@ export const DisplayVerticalBarContext = createContext<{
   currentNoteSize: number
   setCurrentNoteSize: Dispatch<SetStateAction<number>>
 } | null>(null)
+
+export const MainScoreContext = createContext<{
+  maxHeight: number[][]
+  setMaxHeightPerBar: Dispatch<SetStateAction<number[][][]>>
+} | null>(null)

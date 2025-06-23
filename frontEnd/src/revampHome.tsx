@@ -9,28 +9,42 @@ import {
 import type { JSX } from 'preact/jsx-runtime'
 import type {
   SvgMovableBoxProps,
-  CircleData
+  CircleData,
+  VerticalPentagramProps
 } from './revamp/interface/BarInterface'
-import { DisplayVerticalBarContext } from './revamp/context/DisplayContext'
+import {
+  DisplayVerticalBarContext,
+  MainScoreContext
+} from './revamp/context/DisplayContext'
 
 export function SvgMovableBox({
   onCircleAdded,
   id,
   onCircleClicked,
-  actualBar
+  actualBar,
+  indexPentagram,
+  indexBar
 }: SvgMovableBoxProps) {
+  const mainScoreContext = useContext(MainScoreContext)
   const context = useContext(DisplayVerticalBarContext)
-  if (!context) return
-
+  if (!context || !mainScoreContext) return
   const { svgViewboxHeight, svgViewboxWidth, currentNoteSize, mode } = context
+  const { maxHeight, setMaxHeightPerBar } = mainScoreContext
+  if (
+    !maxHeight[indexPentagram] ||
+    maxHeight[indexPentagram][0] == undefined ||
+    maxHeight[indexPentagram][1] == undefined
+  )
+    return
+
   const circleRadius: number = 20
 
   const svgRef = useRef<SVGSVGElement | null>(null)
 
   const [clickedCirclesData, setClickedCirclesData] = useState<CircleData[]>([])
   let nextCircleId = useRef(0)
-  const [actualYOffset, setActualYOffset] = useState(0)
-  const [actualYOffsetBottom, setActualYOffsetBottom] = useState(0)
+  const actualYOffset = maxHeight[indexPentagram][0]
+  const actualYOffsetBottom = maxHeight[indexPentagram][1]
   const viewBoxString: string = `0 ${actualYOffset} ${svgViewboxWidth} ${
     svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
@@ -120,7 +134,6 @@ export function SvgMovableBox({
 
     if (actualBar.length === 0) return []
     let tmpYOffset = 0
-    let tmpYOffsetBottom = 0
     let minY = Infinity
     let maxY = -Infinity
     const updatedBar = actualBar.map((circleData) => {
@@ -139,13 +152,19 @@ export function SvgMovableBox({
         />
       )
     })
-    if (tmpYOffset > minY) tmpYOffset = minY
+    const copyMaxHeight: number[] = [0, 0]
+    if (tmpYOffset > minY) copyMaxHeight[0] = minY
 
     const fullHeigth = svgViewboxHeight
     if (fullHeigth <= maxY)
-      tmpYOffsetBottom = maxY - fullHeigth + newCircleRadius
-    setActualYOffset(tmpYOffset)
-    setActualYOffsetBottom(tmpYOffsetBottom)
+      copyMaxHeight[1] = maxY - fullHeigth + newCircleRadius
+    setMaxHeightPerBar((prevHeight) => {
+      const newHeight = [...prevHeight]
+      newHeight[indexBar] = [...newHeight[indexBar]]
+      newHeight[indexBar][indexPentagram] = copyMaxHeight
+      console.log('que')
+      return newHeight
+    })
     return updatedBar
   }, [clickedCirclesData, svgViewboxWidth, circleRadius, actualBar, mode])
   return (
@@ -168,7 +187,7 @@ export function SvgMovableBox({
   )
 }
 
-export function VerticalPentagram() {
+export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const NEW_CIRCLE_RADIUS = 20 / 2
   const IDEAL_SPACING = 10
   const MIN_ITEM_WIDTH = NEW_CIRCLE_RADIUS * 2 + IDEAL_SPACING
@@ -275,7 +294,7 @@ export function VerticalPentagram() {
             break
         }
       }
-      console.log(actualNote.cy)
+      //console.log(actualNote.cy)
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -319,6 +338,8 @@ export function VerticalPentagram() {
           }
           onCircleClicked={(index, id) => handleCircleClickedInBox(index, id)}
           actualBar={allBars['box1']}
+          indexPentagram={0}
+          indexBar={indexBar}
         />
         <SvgMovableBox
           id="box2"
@@ -327,8 +348,59 @@ export function VerticalPentagram() {
           }
           onCircleClicked={handleCircleClickedInBox}
           actualBar={allBars['box2']}
+          indexPentagram={1}
+          indexBar={indexBar}
         />
       </article>
     </DisplayVerticalBarContext.Provider>
+  )
+}
+
+export function MainScore() {
+  const [maxHeight, setMaxHeight] = useState<number[][]>([[]])
+  const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>([[[]]])
+  useEffect(() => {
+    let maxHeight: number[][] = []
+    for (let index = 0; index < 2; index++) {
+      const initArray = [0, 0]
+      maxHeight.push(initArray)
+    }
+    setMaxHeight(maxHeight)
+    const maxHeightPerBar: number[][][] = []
+    for (let i = 0; i < 2; i++) {
+      const currentBar: number[][] = []
+      for (let j = 0; j < 2; j++) {
+        const verticalBar: number[] = [0, 0]
+        currentBar.push(verticalBar)
+      }
+      maxHeightPerBar.push(currentBar)
+    }
+    setMaxHeightPerBar(maxHeightPerBar)
+  }, [])
+  useEffect(() => {
+    let minY = 0
+    let maxY = 0
+    //This is to avoid NaN in the initialization
+    if (
+      !maxHeightPerBar[0] ||
+      !maxHeightPerBar[0][0] ||
+      !maxHeightPerBar[0][0][0]
+    )
+      return
+    for (let index = 0; index < maxHeightPerBar.length; index++) {
+      minY = Math.min(minY, maxHeightPerBar[index][0][0])
+      maxY = Math.max(maxY, maxHeightPerBar[index][0][1])
+      console.log(maxHeightPerBar)
+    }
+    const copyMaxHeight = [...maxHeight]
+    copyMaxHeight[0][0] = minY
+    copyMaxHeight[0][1] = maxY
+    setMaxHeight(copyMaxHeight)
+  }, [maxHeightPerBar])
+  return (
+    <MainScoreContext.Provider value={{ maxHeight, setMaxHeightPerBar }}>
+      <VerticalPentagram indexBar={0} />
+      <VerticalPentagram indexBar={1} />
+    </MainScoreContext.Provider>
   )
 }

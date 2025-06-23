@@ -1,5 +1,5 @@
 import { render } from 'preact'
-import { VerticalPentagram } from './revampHome'
+import { MainScore } from './revampHome'
 
 render(
   <div
@@ -10,7 +10,7 @@ render(
       width: '100%'
     }}
   >
-    <VerticalPentagram /> <VerticalPentagram />
+    <MainScore />
   </div>,
   document.getElementById('app')!
 )
