@@ -18,4 +18,6 @@ export const DisplayVerticalBarContext = createContext<{
 export const MainScoreContext = createContext<{
   maxHeight: number[][]
   setMaxHeightPerBar: Dispatch<SetStateAction<number[][][]>>
+  maxPentagram: number
+  setMaxPentagram: Dispatch<SetStateAction<number>>
 } | null>(null)
