@@ -12,7 +12,8 @@ import type {
   CircleData,
   VerticalPentagramProps,
   VerticalBarData,
-  BarData
+  BarData,
+  SelectedNote
 } from './revamp/interface/BarInterface'
 import {
   DisplayVerticalBarContext,
@@ -133,10 +134,11 @@ export function SvgMovableBox({
       event.stopPropagation()
       if (onCircleClicked) {
         onCircleClicked(
+          indexBar,
+          indexPentagram,
           allPentagramsData[indexBar].allBar[
             indexPentagram
-          ].currentNotes.indexOf(circleDataToReturn),
-          id
+          ].currentNotes.indexOf(circleDataToReturn)
         )
       }
     },
@@ -175,7 +177,7 @@ export function SvgMovableBox({
       copyMaxHeight[1] = maxY - fullHeigth + newCircleRadius
     setMaxHeightPerBar((prevHeight) => {
       const newHeight = [...prevHeight]
-      newHeight[indexPentagram] = [...newHeight[indexBar]]
+      newHeight[indexPentagram] = [...newHeight[indexPentagram]]
       newHeight[indexPentagram][indexBar] = copyMaxHeight
       return newHeight
     })
@@ -204,7 +206,12 @@ export function SvgMovableBox({
 export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const mainScore = useContext(MainScoreContext)
   if (!mainScore) return
-  const { maxPentagram, allPentagramsData, setAllPentagramsData } = mainScore
+  const {
+    maxPentagram,
+    allPentagramsData,
+    setAllPentagramsData,
+    setSelectedNote
+  } = mainScore
   if (maxPentagram == null) return
 
   const NEW_CIRCLE_RADIUS = 20 / 2
@@ -221,13 +228,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
 
   // Use a state for IDs to ensure consistency across renders
   const [pentagramUniqueIds, setPentagramUniqueIds] = useState<string[]>([])
-
-  const [selectedNote, setSelectedNote] = useState<{ id: string; pos: number }>(
-    {
-      id: '',
-      pos: -1
-    }
-  )
 
   useEffect(() => {
     if (maxPentagram != null) {
@@ -261,55 +261,15 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   )
 
   const handleCircleClickedInBox = useCallback(
-    (circleId: number, barId: string) => {
-      setSelectedNote({ id: barId, pos: circleId })
+    (barId: number, pentagramId: number, noteId: number) => {
+      setSelectedNote({
+        barIndex: barId,
+        noteIndex: noteId,
+        currentPentagram: pentagramId
+      })
     },
     [allPentagramsData]
   )
-  /*useEffect(() => {
-    if (selectedNote.id === '' || selectedNote.pos === -1) return
-
-    const tmpAllBars = { ...allBars }
-    const currentBar = tmpAllBars[selectedNote.id]
-    if (!currentBar) {
-      console.warn(`Bar with ID ${selectedNote.id} not found.`)
-      return
-    }
-    const currentNotesInBar = [...currentBar]
-    const actualNote = currentNotesInBar[selectedNote.pos]
-
-    if (!actualNote) {
-      console.warn(
-        `Note at position ${selectedNote.pos} not found in bar ${selectedNote.id}.`
-      )
-      return
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (mode === 0) {
-        let newCy = actualNote.cy
-        switch (event.key) {
-          case 'ArrowUp':
-            newCy -= 10
-            break
-          case 'ArrowDown':
-            newCy += 10
-            break
-          default:
-            return
-        }
-        const updatedNote = { ...actualNote, cy: newCy }
-        currentNotesInBar[selectedNote.pos] = updatedNote
-        tmpAllBars[selectedNote.id] = currentNotesInBar
-        setAllBars(tmpAllBars)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [selectedNote, allBars, mode])*/
 
   const memoizedPentagramBoxes = useMemo(() => {
     return pentagramUniqueIds.map((id, i) => (
@@ -389,6 +349,11 @@ export function MainScore() {
   const [mode, setMode] = useState<number>(0)
   const [currentNoteSize, setCurrentNoteSize] = useState(1)
   const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>([[[]]])
+  const [selectedNote, setSelectedNote] = useState<SelectedNote>({
+    barIndex: -1,
+    noteIndex: -1,
+    currentPentagram: -1
+  })
   const [allPentagramsData, setAllPentagramsData] = useState<VerticalBarData[]>(
     () => {
       const initialData: VerticalBarData[] = []
@@ -454,18 +419,72 @@ export function MainScore() {
     )
       return
     const copyMaxHeight = [...maxHeight]
-    for (let j = 0; j < maxPentagram; j++) {
+    for (let i = 0; i < maxPentagram; i++) {
       minY = Infinity
       maxY = -Infinity
-      for (let i = 0; i < maxBar; i++) {
-        minY = Math.min(minY, maxHeightPerBar[j][i][0])
-        maxY = Math.max(maxY, maxHeightPerBar[j][i][1])
+      for (let j = 0; j < maxBar; j++) {
+        minY = Math.min(minY, maxHeightPerBar[i][j][0])
+        maxY = Math.max(maxY, maxHeightPerBar[i][j][1])
       }
-      copyMaxHeight[j][0] = minY
-      copyMaxHeight[j][1] = maxY
+      copyMaxHeight[i][0] = minY
+      copyMaxHeight[i][1] = maxY
     }
+    console.log(maxHeightPerBar)
     setMaxHeight(copyMaxHeight)
   }, [maxHeightPerBar, allPentagramsData])
+  useEffect(() => {
+    if (
+      selectedNote.barIndex === -1 ||
+      selectedNote.noteIndex === -1 ||
+      selectedNote.currentPentagram === -1
+    )
+      return
+
+    const tmpAllBars = [...allPentagramsData]
+    const currentBar =
+      tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
+        .currentNotes
+    if (!currentBar) {
+      console.warn(`Bar with ID ${selectedNote.barIndex} not found.`)
+      return
+    }
+    const currentNotesInBar = [...currentBar]
+    const actualNote = currentNotesInBar[selectedNote.noteIndex]
+
+    if (!actualNote) {
+      console.warn(
+        `Note at position ${selectedNote.noteIndex} not found in bar ${selectedNote.barIndex}.`
+      )
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (mode === 0) {
+        let newCy = actualNote.cy
+        switch (event.key) {
+          case 'ArrowUp':
+            newCy -= 10
+            break
+          case 'ArrowDown':
+            newCy += 10
+            break
+          default:
+            return
+        }
+        const updatedNote = { ...actualNote, cy: newCy }
+        currentNotesInBar[selectedNote.noteIndex] = updatedNote
+        tmpAllBars[selectedNote.barIndex].allBar[
+          selectedNote.currentPentagram
+        ].currentNotes = currentNotesInBar
+        setAllPentagramsData(tmpAllBars)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedNote, allPentagramsData, mode])
   return (
     <MainScoreContext.Provider
       value={{
@@ -478,7 +497,9 @@ export function MainScore() {
         mode,
         setMode,
         currentNoteSize,
-        setCurrentNoteSize
+        setCurrentNoteSize,
+        selectedNote,
+        setSelectedNote
       }}
     >
       <div>

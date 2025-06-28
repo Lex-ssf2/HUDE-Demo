@@ -1,7 +1,11 @@
 export interface SvgMovableBoxProps {
   onCircleAdded: (newCircleCount: number, noteList: CircleData[]) => void
   id: string
-  onCircleClicked: (index: number, actualId: string) => void
+  onCircleClicked: (
+    indexBar: number,
+    indexPentagrama: number,
+    indexNote: number
+  ) => void
   indexBar: number
   indexPentagram: number
 }
@@ -22,4 +26,10 @@ export interface VerticalBarData {
 
 export interface BarData {
   currentNotes: CircleData[]
+}
+
+export interface SelectedNote {
+  barIndex: number
+  noteIndex: number
+  currentPentagram: number
 }
