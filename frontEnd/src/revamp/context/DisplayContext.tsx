@@ -1,6 +1,6 @@
 import { createContext } from 'preact/compat'
 import type { Dispatch, SetStateAction } from 'preact/compat'
-import type { CircleData } from '../interface/BarInterface'
+import type { CircleData, VerticalBarData } from '../interface/BarInterface'
 
 export const DisplayVerticalBarContext = createContext<{
   mode: number
@@ -20,4 +20,6 @@ export const MainScoreContext = createContext<{
   setMaxHeightPerBar: Dispatch<SetStateAction<number[][][]>>
   maxPentagram: number
   setMaxPentagram: Dispatch<SetStateAction<number>>
+  allPentagramsData: VerticalBarData[]
+  setAllPentagramsData: (data: VerticalBarData[]) => void
 } | null>(null)

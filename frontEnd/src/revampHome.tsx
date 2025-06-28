@@ -10,7 +10,9 @@ import { type JSX } from 'preact/jsx-runtime'
 import type {
   SvgMovableBoxProps,
   CircleData,
-  VerticalPentagramProps
+  VerticalPentagramProps,
+  VerticalBarData,
+  BarData
 } from './revamp/interface/BarInterface'
 import {
   DisplayVerticalBarContext,
@@ -21,15 +23,21 @@ export function SvgMovableBox({
   onCircleAdded,
   id,
   onCircleClicked,
-  actualBar,
   indexPentagram,
   indexBar
 }: SvgMovableBoxProps) {
   const mainScoreContext = useContext(MainScoreContext)
   const context = useContext(DisplayVerticalBarContext)
   if (!context || !mainScoreContext) return
-  const { svgViewboxHeight, svgViewboxWidth, currentNoteSize, mode } = context
-  const { maxHeight, setMaxHeightPerBar } = mainScoreContext
+  const { svgViewboxHeight, svgViewboxWidth } = context
+  const {
+    maxHeight,
+    setMaxHeightPerBar,
+    setAllPentagramsData,
+    allPentagramsData,
+    currentNoteSize,
+    mode
+  } = mainScoreContext
   if (
     !maxHeight[indexPentagram] ||
     maxHeight[indexPentagram][0] == undefined ||
@@ -41,11 +49,9 @@ export function SvgMovableBox({
 
   const svgRef = useRef<SVGSVGElement | null>(null)
 
-  const [clickedCirclesData, setClickedCirclesData] = useState<CircleData[]>([])
   let nextCircleId = useRef(0)
   const actualYOffset = maxHeight[indexPentagram][0]
   const actualYOffsetBottom = maxHeight[indexPentagram][1]
-  console.log('hola como estas', maxHeight)
   const viewBoxString: string = `0 ${actualYOffset} ${svgViewboxWidth} ${
     svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
@@ -94,18 +100,16 @@ export function SvgMovableBox({
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
-
-    // Now, adjust for the actualYOffset (the 'min-y' of your viewBox)
-    // This effectively translates the screen Y to the correct Y within the shifted viewBox coordinate system.
     const clickedCy = yInSvgCoords + actualYOffset
-
+    const copyPentagram = [...allPentagramsData]
+    const clickedCirclesData =
+      copyPentagram[indexBar].allBar[indexPentagram].currentNotes
     let actualSize = circleRadius + 10
     let lastSize = 0
     for (let index = 0; index < clickedCirclesData.length; index++) {
       lastSize = clickedCirclesData[index].actualSize
       actualSize += (circleRadius + 10) * lastSize
     }
-    //console.log(actualSize)
     const actualPosition = actualSize
     const newCircleData = {
       id: nextCircleId.current++,
@@ -113,31 +117,40 @@ export function SvgMovableBox({
       cx: actualPosition,
       actualSize: currentNoteSize
     }
-    const updatedCirclesData = [...actualBar, newCircleData]
-    setClickedCirclesData(updatedCirclesData)
+    copyPentagram[indexBar].allBar[indexPentagram].currentNotes.push(
+      newCircleData
+    )
+    setAllPentagramsData(copyPentagram)
     onCircleAdded(
       actualPosition + (circleRadius + 10 * currentNoteSize),
-      updatedCirclesData
+      copyPentagram[indexBar].allBar[indexPentagram].currentNotes
     )
   }
 
   const handleCircleClick = useCallback(
     (circleDataToReturn: CircleData, event: MouseEvent) => {
+      console.log('huh')
       event.stopPropagation()
       if (onCircleClicked) {
-        onCircleClicked(actualBar.indexOf(circleDataToReturn), id)
+        onCircleClicked(
+          allPentagramsData[indexBar].allBar[
+            indexPentagram
+          ].currentNotes.indexOf(circleDataToReturn),
+          id
+        )
       }
     },
-    [onCircleClicked, mode]
+    [onCircleClicked, mode, allPentagramsData]
   )
   const renderedCircles = useMemo(() => {
     const newCircleRadius = circleRadius / 2
-
-    if (!actualBar || actualBar.length === 0) return []
+    const actualBarTmp =
+      allPentagramsData[indexBar].allBar[indexPentagram].currentNotes
+    if (!actualBarTmp || actualBarTmp.length === 0) return []
     let tmpYOffset = 0
     let minY = Infinity
     let maxY = -Infinity
-    const updatedBar = actualBar.map((circleData) => {
+    const updatedBar = actualBarTmp.map((circleData) => {
       minY = Math.min(minY, circleData.cy - newCircleRadius)
       maxY = Math.max(maxY, circleData.cy + newCircleRadius)
       return (
@@ -164,17 +177,17 @@ export function SvgMovableBox({
       const newHeight = [...prevHeight]
       newHeight[indexPentagram] = [...newHeight[indexBar]]
       newHeight[indexPentagram][indexBar] = copyMaxHeight
-      console.log('que')
       return newHeight
     })
     return updatedBar
-  }, [clickedCirclesData, svgViewboxWidth, circleRadius, actualBar, mode])
+  }, [svgViewboxWidth, circleRadius, allPentagramsData, mode])
   return (
     <svg
       ref={svgRef}
       viewBox={viewBoxString}
       onClick={handleSvgClick}
       style={{
+        borderRight: '2px solid black',
         backgroundColor: '#f0f0f0',
         overflow: 'visible',
         cursor: 'crosshair',
@@ -191,7 +204,7 @@ export function SvgMovableBox({
 export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const mainScore = useContext(MainScoreContext)
   if (!mainScore) return
-  const { maxPentagram } = mainScore
+  const { maxPentagram, allPentagramsData, setAllPentagramsData } = mainScore
   if (maxPentagram == null) return
 
   const NEW_CIRCLE_RADIUS = 20 / 2
@@ -202,14 +215,12 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const [svgViewboxWidth, setSvgViewboxWidth] =
     useState<number>(MIN_VIEWBOX_WIDTH)
   const [svgViewboxHeight, setSvgViewboxHeight] = useState<number>(100)
-  const [, setCirclesCountPerBox] = useState<Record<string, number>>({})
   const [currentNoteSize, setCurrentNoteSize] = useState<number>(1)
   const [mode, setMode] = useState<number>(0)
   const [currentNote, setCurrentNote] = useState<CircleData | null>(null)
 
   // Use a state for IDs to ensure consistency across renders
   const [pentagramUniqueIds, setPentagramUniqueIds] = useState<string[]>([])
-  const [allBars, setAllBars] = useState<Record<string, CircleData[]>>({})
 
   const [selectedNote, setSelectedNote] = useState<{ id: string; pos: number }>(
     {
@@ -221,42 +232,30 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   useEffect(() => {
     if (maxPentagram != null) {
       const newIds: string[] = []
-      const initialAllBars: Record<string, CircleData[]> = {}
       for (let i = 0; i < maxPentagram; i++) {
         const pentagramId = `box${i}`
         newIds.push(pentagramId)
-        initialAllBars[pentagramId] = []
       }
       setPentagramUniqueIds(newIds)
-      setAllBars(initialAllBars)
     }
-  }, [maxPentagram])
+  }, [allPentagramsData])
 
   const handleCircleAdded = useCallback(
-    (id: string, newCountForThisBox: number, noteList: CircleData[]) => {
-      setCirclesCountPerBox((prevCounts) => {
-        const updatedCounts = {
-          ...prevCounts,
-          [id]: newCountForThisBox
-        }
-
-        let maxRequiredWidth = MIN_VIEWBOX_WIDTH
-        Object.entries(updatedCounts).forEach(([, count]) => {
-          const requiredWidthForThisBox = count
-          if (requiredWidthForThisBox > maxRequiredWidth) {
-            maxRequiredWidth = requiredWidthForThisBox
-          }
-        })
-        if (maxRequiredWidth !== svgViewboxWidth) {
-          setSvgViewboxWidth(maxRequiredWidth)
-        }
-        return updatedCounts
-      })
-
-      setAllBars((prevAllBars) => ({
-        ...prevAllBars,
-        [id]: noteList
-      }))
+    (id: number, newCountForThisBox: number, noteList: CircleData[]) => {
+      let maxRequiredWidth = MIN_VIEWBOX_WIDTH
+      const requiredWidthForThisBox = newCountForThisBox
+      if (requiredWidthForThisBox > maxRequiredWidth) {
+        maxRequiredWidth = requiredWidthForThisBox
+      }
+      if (
+        maxRequiredWidth !== svgViewboxWidth &&
+        maxRequiredWidth > svgViewboxWidth
+      ) {
+        setSvgViewboxWidth(maxRequiredWidth)
+      }
+      const copyallPentagramsData = [...allPentagramsData]
+      copyallPentagramsData[indexBar].allBar[id].currentNotes = noteList
+      setAllPentagramsData(copyallPentagramsData)
     },
     [MIN_VIEWBOX_WIDTH, MIN_ITEM_WIDTH, IDEAL_SPACING, svgViewboxWidth]
   )
@@ -265,10 +264,9 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     (circleId: number, barId: string) => {
       setSelectedNote({ id: barId, pos: circleId })
     },
-    []
+    [allPentagramsData]
   )
-
-  useEffect(() => {
+  /*useEffect(() => {
     if (selectedNote.id === '' || selectedNote.pos === -1) return
 
     const tmpAllBars = { ...allBars }
@@ -311,36 +309,27 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [selectedNote, allBars, mode])
+  }, [selectedNote, allBars, mode])*/
 
-  // --- NEW: Memoize the pentagram boxes ---
   const memoizedPentagramBoxes = useMemo(() => {
     return pentagramUniqueIds.map((id, i) => (
       <SvgMovableBox
-        key={id} // Use the stable ID as the key
-        id={id} // Use the stable ID as the id prop
+        key={id}
+        id={id}
         onCircleAdded={(count, noteList) =>
-          handleCircleAdded(id, count, noteList)
+          handleCircleAdded(i, count, noteList)
         }
         onCircleClicked={handleCircleClickedInBox}
-        // This is the crucial part: pass the specific bar for this ID
-        actualBar={allBars[id] || []}
         indexPentagram={i}
         indexBar={indexBar}
       />
     ))
   }, [
     pentagramUniqueIds,
-    allBars,
     handleCircleAdded,
     handleCircleClickedInBox,
     indexBar
   ])
-  // Dependencies:
-  // - pentagramUniqueIds: If the number or IDs of pentagrams change.
-  // - allBars: If any note data changes in *any* bar (this will re-render the specific SvgMovableBox whose actualBar prop changed).
-  // - handleCircleAdded, handleCircleClickedInBox: These are stable due to useCallback, but included for completeness.
-  // - indexBar: If the parent `indexBar` prop changes (less common for individual pentagrams, but included if relevant).
 
   return (
     <DisplayVerticalBarContext.Provider
@@ -364,14 +353,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
           gap: '10px'
         }}
       >
-        <section>
-          <button onClick={() => setMode(0)}>Select</button>
-          <button onClick={() => setMode(1)}>Add</button>
-          <button onClick={() => setCurrentNoteSize(1)}>1</button>
-          <button onClick={() => setCurrentNoteSize(2)}>2</button>
-          <button onClick={() => setCurrentNoteSize(4)}>3</button>
-        </section>
-        {memoizedPentagramBoxes} {/* Render the memoized list */}
+        <section></section>
+        {memoizedPentagramBoxes}
       </article>
     </DisplayVerticalBarContext.Provider>
   )
@@ -402,8 +385,47 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
 export function MainScore() {
   const [maxHeight, setMaxHeight] = useState<number[][]>([[]])
   const [maxPentagram, setMaxPentagram] = useState<number>(3)
+  const [maxBar] = useState<number>(2)
+  const [mode, setMode] = useState<number>(0)
+  const [currentNoteSize, setCurrentNoteSize] = useState(1)
   const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>([[[]]])
+  const [allPentagramsData, setAllPentagramsData] = useState<VerticalBarData[]>(
+    () => {
+      const initialData: VerticalBarData[] = []
+      for (let barIndex = 0; barIndex < maxBar; barIndex++) {
+        const barContent: BarData[] = []
+        for (
+          let pentagramIndex = 0;
+          pentagramIndex < maxPentagram;
+          pentagramIndex++
+        ) {
+          barContent.push({ currentNotes: [] })
+        }
+        initialData.push({ allBar: barContent })
+      }
+      return initialData
+    }
+  )
   useEffect(() => {
+    const copyallPentagramsData = [...allPentagramsData]
+    for (let i = 0; i < maxPentagram; i++) {
+      for (
+        let pentagramIndex = 0;
+        pentagramIndex < maxPentagram;
+        pentagramIndex++
+      ) {
+        console.log(pentagramIndex, 'holaxd')
+        if (
+          !copyallPentagramsData[i] ||
+          copyallPentagramsData[i].allBar[pentagramIndex]
+        )
+          continue
+        copyallPentagramsData[i].allBar[pentagramIndex] = {
+          currentNotes: []
+        }
+      }
+    }
+    setAllPentagramsData(copyallPentagramsData)
     let maxHeight: number[][] = []
     for (let index = 0; index < maxPentagram; index++) {
       const initArray = [0, 0]
@@ -413,7 +435,7 @@ export function MainScore() {
     const maxHeightPerBar: number[][][] = []
     for (let i = 0; i < maxPentagram; i++) {
       const currentBar: number[][] = []
-      for (let j = 0; j < 2; j++) {
+      for (let j = 0; j < maxBar; j++) {
         const verticalBar: number[] = [0, 0]
         currentBar.push(verticalBar)
       }
@@ -435,19 +457,29 @@ export function MainScore() {
     for (let j = 0; j < maxPentagram; j++) {
       minY = Infinity
       maxY = -Infinity
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < maxBar; i++) {
         minY = Math.min(minY, maxHeightPerBar[j][i][0])
         maxY = Math.max(maxY, maxHeightPerBar[j][i][1])
       }
-      console.log(maxHeightPerBar, 'hola')
       copyMaxHeight[j][0] = minY
       copyMaxHeight[j][1] = maxY
     }
     setMaxHeight(copyMaxHeight)
-  }, [maxHeightPerBar])
+  }, [maxHeightPerBar, allPentagramsData])
   return (
     <MainScoreContext.Provider
-      value={{ maxHeight, setMaxHeightPerBar, maxPentagram, setMaxPentagram }}
+      value={{
+        maxHeight,
+        setMaxHeightPerBar,
+        maxPentagram,
+        setMaxPentagram,
+        allPentagramsData,
+        setAllPentagramsData,
+        mode,
+        setMode,
+        currentNoteSize,
+        setCurrentNoteSize
+      }}
     >
       <div>
         <button
@@ -459,11 +491,16 @@ export function MainScore() {
         </button>
         <button
           onClick={() => {
-            setMaxPentagram((previo) => previo - 1)
+            setMaxPentagram((previo) => Math.max(previo - 1, 1))
           }}
         >
           Pentagrama--
         </button>
+        <button onClick={() => setMode(0)}>Select</button>
+        <button onClick={() => setMode(1)}>Add</button>
+        <button onClick={() => setCurrentNoteSize(1)}>1</button>
+        <button onClick={() => setCurrentNoteSize(2)}>2</button>
+        <button onClick={() => setCurrentNoteSize(4)}>3</button>
       </div>
       <section
         style={{
