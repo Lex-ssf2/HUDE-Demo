@@ -146,32 +146,39 @@ export function SvgMovableBox({
   )
   const renderedCircles = useMemo(() => {
     const newCircleRadius = circleRadius / 2
+    // This verification is need it cuz for some reason when updating
+    // the current notes sometimes it deletes the bar (?
+    // not really sure whats happening but this avoids it
+    if (!allPentagramsData[indexBar]) return
     const actualBarTmp =
       allPentagramsData[indexBar].allBar[indexPentagram].currentNotes
     if (!actualBarTmp || actualBarTmp.length === 0) return []
     let tmpYOffset = 0
     let minY = Infinity
     let maxY = -Infinity
-    const updatedBar = actualBarTmp.map((circleData) => {
-      minY = Math.min(minY, circleData.cy - newCircleRadius)
-      maxY = Math.max(maxY, circleData.cy + newCircleRadius)
-      return (
-        <circle
-          key={circleData.id}
-          cx={circleData.cx}
-          cy={circleData.cy}
-          r={newCircleRadius}
-          fill="rgba(0, 100, 255, 0.6)"
-          stroke="blue"
-          stroke-width="1"
-          onClick={(e) => handleCircleClick(circleData, e)}
-        />
-      )
-    })
+    const updatedBar = actualBarTmp.map(
+      (circleData) => {
+        minY = Math.min(minY, circleData.cy - newCircleRadius)
+        maxY = Math.max(maxY, circleData.cy + newCircleRadius)
+        return (
+          <circle
+            key={circleData.id}
+            cx={circleData.cx}
+            cy={circleData.cy}
+            r={newCircleRadius}
+            fill="rgba(0, 100, 255, 0.6)"
+            stroke="blue"
+            stroke-width="1"
+            onClick={(e) => handleCircleClick(circleData, e)}
+          />
+        )
+      },
+      [allPentagramsData]
+    )
     const copyMaxHeight: number[] = [0, 0]
     if (tmpYOffset > minY) copyMaxHeight[0] = minY
 
-    console.log(minY, tmpYOffset)
+    //console.log(minY, tmpYOffset)
     const fullHeigth = svgViewboxHeight
     if (fullHeigth <= maxY)
       copyMaxHeight[1] = maxY - fullHeigth + newCircleRadius
@@ -345,10 +352,11 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
 export function MainScore() {
   const [maxHeight, setMaxHeight] = useState<number[][]>([[]])
   const [maxPentagram, setMaxPentagram] = useState<number>(3)
-  const [maxBar] = useState<number>(2)
+  const [maxBar, setMaxBar] = useState<number>(2)
   const [mode, setMode] = useState<number>(0)
   const [currentNoteSize, setCurrentNoteSize] = useState(1)
   const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>([[[]]])
+  const [barUniqueIds, setBarUniqueIds] = useState<string[]>([])
   const [selectedNote, setSelectedNote] = useState<SelectedNote>({
     barIndex: -1,
     noteIndex: -1,
@@ -373,17 +381,18 @@ export function MainScore() {
   )
   useEffect(() => {
     const copyallPentagramsData = [...allPentagramsData]
-    for (let i = 0; i < maxPentagram; i++) {
+    for (let i = 0; i < maxBar; i++) {
+      if (!copyallPentagramsData[i]) {
+        const tmpAllBar: BarData[] = []
+        copyallPentagramsData[i] = { allBar: tmpAllBar }
+      }
       for (
         let pentagramIndex = 0;
         pentagramIndex < maxPentagram;
         pentagramIndex++
       ) {
-        console.log(pentagramIndex, 'holaxd')
-        if (
-          !copyallPentagramsData[i] ||
-          copyallPentagramsData[i].allBar[pentagramIndex]
-        )
+        //console.log(pentagramIndex, 'holaxd')
+        if (copyallPentagramsData[i].allBar[pentagramIndex]?.currentNotes)
           continue
         copyallPentagramsData[i].allBar[pentagramIndex] = {
           currentNotes: []
@@ -407,7 +416,7 @@ export function MainScore() {
       maxHeightPerBar.push(currentBar)
     }
     setMaxHeightPerBar(maxHeightPerBar)
-  }, [maxPentagram])
+  }, [maxPentagram, maxBar])
   useEffect(() => {
     let minY = Infinity
     let maxY = -Infinity
@@ -429,7 +438,7 @@ export function MainScore() {
       copyMaxHeight[i][0] = minY
       copyMaxHeight[i][1] = maxY
     }
-    console.log(maxHeightPerBar)
+    //console.log(maxHeightPerBar)
     setMaxHeight(copyMaxHeight)
   }, [maxHeightPerBar, allPentagramsData])
   useEffect(() => {
@@ -485,6 +494,21 @@ export function MainScore() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [selectedNote, allPentagramsData, mode])
+  useEffect(() => {
+    if (maxBar != null) {
+      const newIds: string[] = []
+      for (let i = 0; i < maxBar; i++) {
+        const pentagramId = `bar${i}`
+        newIds.push(pentagramId)
+      }
+      setBarUniqueIds(newIds)
+    }
+  }, [maxBar])
+  const memoizedBarBoxes = useMemo(() => {
+    return barUniqueIds.map((id, i) => (
+      <VerticalPentagram key={id} indexBar={i} />
+    ))
+  }, [barUniqueIds, maxBar])
   return (
     <MainScoreContext.Provider
       value={{
@@ -492,6 +516,8 @@ export function MainScore() {
         setMaxHeightPerBar,
         maxPentagram,
         setMaxPentagram,
+        maxBar,
+        setMaxBar,
         allPentagramsData,
         setAllPentagramsData,
         mode,
@@ -517,6 +543,20 @@ export function MainScore() {
         >
           Pentagrama--
         </button>
+        <button
+          onClick={() => {
+            setMaxBar((previo) => previo + 1)
+          }}
+        >
+          Bar++
+        </button>
+        <button
+          onClick={() => {
+            setMaxBar((previo) => Math.max(previo - 1, 1))
+          }}
+        >
+          Bar--
+        </button>
         <button onClick={() => setMode(0)}>Select</button>
         <button onClick={() => setMode(1)}>Add</button>
         <button onClick={() => setCurrentNoteSize(1)}>1</button>
@@ -531,8 +571,7 @@ export function MainScore() {
           width: '100%'
         }}
       >
-        <VerticalPentagram indexBar={0} />
-        <VerticalPentagram indexBar={1} />
+        {memoizedBarBoxes}
       </section>
     </MainScoreContext.Provider>
   )
