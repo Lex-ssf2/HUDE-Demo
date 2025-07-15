@@ -1,5 +1,3 @@
-// src/MainScore.tsx
-
 import { useState, useEffect, useMemo } from 'preact/hooks'
 import { VerticalPentagram } from './components/VerticalPentagram'
 import { MainScoreContext } from './context/DisplayContext'
@@ -8,22 +6,30 @@ import {
   type VerticalBarData,
   type BarData
 } from './constants/types'
+import { ADD_NOTE, REMOVE_NOTE, SELECT_NOTE } from './constants/mode'
 import { CIRCLE_RADIUS, IDEAL_SPACING } from './constants/constants'
+
+/**
+ *
+ * MainScore is just the full music scoreSheet
+ *
+ */
 
 export function MainScore() {
   const [maxPentagram, setMaxPentagram] = useState<number>(3)
   const [maxBar, setMaxBar] = useState<number>(2)
-  const [mode, setMode] = useState<number>(0)
+  const [mode, setMode] = useState<number>(SELECT_NOTE)
   const [currentNoteSize, setCurrentNoteSize] = useState(1)
   const [selectedNote, setSelectedNote] = useState<SelectedNote>({
     barIndex: -1,
     noteIndex: -1,
     currentPentagram: -1
   })
-
+  //This is to make all Bar the same size in X Pentagram
   const [maxHeight, setMaxHeight] = useState<number[][]>(() =>
     Array(maxPentagram).fill([0, 0])
   )
+  //Comparing all Bar size to keep the maximum between pentagram
   const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>(() => {
     const initialHeightPerBar: number[][][] = []
     for (let p = 0; p < maxPentagram; p++) {
@@ -52,7 +58,7 @@ export function MainScore() {
       return initialData
     }
   )
-
+  //Initializes new bars and pentagram
   useEffect(() => {
     setAllPentagramsData((prevData) => {
       const newAllPentagramsData = Array.from(
@@ -70,9 +76,8 @@ export function MainScore() {
       )
       return newAllPentagramsData
     })
-
+    //Resets removed bars
     setMaxHeight(() => Array(maxPentagram).fill([0, 0]))
-
     setMaxHeightPerBar(() => {
       const newHeightPerBar: number[][][] = []
       for (let p = 0; p < maxPentagram; p++) {
@@ -85,6 +90,7 @@ export function MainScore() {
     })
   }, [maxPentagram, maxBar])
 
+  //Checks maxHeight per bar
   useEffect(() => {
     const newMaxHeight: number[][] = Array(maxPentagram)
       .fill(null)
@@ -120,6 +126,8 @@ export function MainScore() {
       setMaxHeight(finalizedMaxHeight)
     }
   }, [maxHeightPerBar, maxPentagram, maxBar, maxHeight])
+
+  //Handles selected note
   useEffect(() => {
     if (
       selectedNote.barIndex === -1 ||
@@ -150,7 +158,7 @@ export function MainScore() {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (mode === 0) {
+      if (mode === SELECT_NOTE) {
         let newCy = actualNote.cy
         switch (event.key) {
           case 'ArrowUp':
@@ -171,7 +179,7 @@ export function MainScore() {
       }
     }
 
-    if (mode === 2) {
+    if (mode === REMOVE_NOTE) {
       updatedNotes.splice(selectedNote.noteIndex, 1)
       let lastSize = 1
       let tmpSize = 0
@@ -206,7 +214,6 @@ export function MainScore() {
     }
     return ids
   }, [maxBar])
-
   const memoizedBarBoxes = useMemo(() => {
     return barUniqueIds.map((id, i) => (
       <VerticalPentagram key={id} indexBar={i} />
@@ -219,13 +226,10 @@ export function MainScore() {
         maxHeight,
         setMaxHeightPerBar,
         maxPentagram,
-        setMaxPentagram,
         maxBar,
-        setMaxBar,
         allPentagramsData,
         setAllPentagramsData,
         mode,
-        setMode,
         currentNoteSize,
         setCurrentNoteSize,
         selectedNote,
@@ -245,11 +249,11 @@ export function MainScore() {
         <button onClick={() => setMaxBar((prev) => Math.max(prev - 1, 1))}>
           Bar--
         </button>
-        <button onClick={() => setMode(0)}>Select</button>
-        <button onClick={() => setMode(1)}>Add</button>
+        <button onClick={() => setMode(SELECT_NOTE)}>Select</button>
+        <button onClick={() => setMode(ADD_NOTE)}>Add</button>
         <button
           onClick={() => {
-            setMode(2)
+            setMode(REMOVE_NOTE)
             setSelectedNote({
               barIndex: -1,
               noteIndex: -1,

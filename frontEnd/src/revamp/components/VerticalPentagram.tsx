@@ -21,6 +21,13 @@ import {
 } from '../constants/constants'
 import { updateWidth } from '../utils/utils'
 
+/**
+ *
+ * A component that contains all Xth bar from all pentagrams
+ * @param indexBar - is just the index of the currentBar
+ *
+ */
+
 export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const mainScore = useContext(MainScoreContext)
   if (!mainScore) {
@@ -36,15 +43,17 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     mode
   } = mainScore
 
+  // WIP template for placeholders needs to be reworked when importing the actual svg
   const MIN_ITEM_WIDTH = CIRCLE_RADIUS * 2 + IDEAL_SPACING
   const MIN_VIEWBOX_WIDTH =
     MIN_ITEM_WIDTH * NUMBER_OF_PENTAGRAM_LINES + IDEAL_SPACING
 
+  //General minimum height WILL be removed cuz its stupid to keep it here
+  const [svgViewboxHeight, setSvgViewboxHeight] = useState<number>(100)
+
+  // General viewBoxWidth
   const [svgViewboxWidth, setSvgViewboxWidth] =
     useState<number>(MIN_VIEWBOX_WIDTH)
-  const [svgViewboxHeight, setSvgViewboxHeight] = useState<number>(100)
-  const [currentNoteSize, setCurrentNoteSize] = useState<number>(1)
-  const [currentNote, setCurrentNote] = useState<CircleData | null>(null)
 
   const [pentagramUniqueIds, setPentagramUniqueIds] = useState<string[]>([])
 
@@ -58,14 +67,12 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     }
   }, [maxPentagram, indexBar])
   useEffect(() => {
-    if (mode === 2 || mode === 1) {
-      const totalWidth = updateWidth({
-        maxPentagram,
-        indexBar,
-        allPentagramsData: allPentagramsData
-      })
-      setSvgViewboxWidth(totalWidth)
-    }
+    const totalWidth = updateWidth({
+      maxPentagram,
+      indexBar,
+      allPentagramsData: allPentagramsData
+    })
+    setSvgViewboxWidth(totalWidth)
   }, [allPentagramsData, maxPentagram, indexBar, mode])
 
   const handleCircleAdded = useCallback(
@@ -98,7 +105,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     return pentagramUniqueIds.map((id, i) => (
       <SvgMovableBox
         key={id}
-        id={id}
         onCircleAdded={(noteList) => handleCircleAdded(i, noteList)}
         onCircleClicked={handleCircleClickedInBox}
         indexPentagram={i}
@@ -115,14 +121,9 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   return (
     <DisplayVerticalBarContext.Provider
       value={{
-        setCurrentNote,
-        currentNote,
-        setSvgViewboxWidth,
         svgViewboxWidth,
         setSvgViewboxHeight,
-        svgViewboxHeight,
-        setCurrentNoteSize,
-        currentNoteSize
+        svgViewboxHeight
       }}
     >
       <article

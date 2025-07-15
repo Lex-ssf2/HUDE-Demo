@@ -12,18 +12,28 @@ import {
   DisplayVerticalBarContext,
   MainScoreContext
 } from '../context/DisplayContext'
+import { ADD_NOTE } from '../constants/mode'
+
+/**
+ *
+ * Bar (The containter) that actually contains all notes
+ * @param onCircleAdded - Updates Note´s array for that bar
+ * @param onCircleClicked - Selects the Note and Note collision
+ * @param indexPentagram - Pentagrams that the bar is on
+ * @param indexBar - Index of the actualBar
+ *
+ */
 
 export function SvgMovableBox({
   onCircleAdded,
-  id,
   onCircleClicked,
   indexPentagram,
   indexBar
 }: SvgMovableBoxProps) {
   const mainScoreContext = useContext(MainScoreContext)
-  const context = useContext(DisplayVerticalBarContext)
-  if (!context || !mainScoreContext) return
-  const { svgViewboxHeight, svgViewboxWidth } = context
+  const verticalBarContext = useContext(DisplayVerticalBarContext)
+  if (!verticalBarContext || !mainScoreContext) return
+  const { svgViewboxHeight, svgViewboxWidth } = verticalBarContext
   const {
     maxHeight,
     setMaxHeightPerBar,
@@ -40,17 +50,24 @@ export function SvgMovableBox({
     return
 
   const circleRadius: number = 20
+  const offsetYStart = 20
 
   const svgRef = useRef<SVGSVGElement | null>(null)
 
   let nextCircleId = useRef(0)
   const actualYOffset = maxHeight[indexPentagram][0]
   const actualYOffsetBottom = maxHeight[indexPentagram][1]
-  const viewBoxString: string = `0 ${actualYOffset} ${svgViewboxWidth} ${
+  const viewBoxString: string = `0 ${
+    actualYOffset - offsetYStart
+  } ${svgViewboxWidth} ${
     svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
   const [currentSvgWidth, setCurrentSvgWidth] = useState(0)
 
+  /*
+   * Resize with the actual navigator size WIP
+   * probably going to be removed to use a better approach
+   **/
   useEffect(() => {
     const measureWidth = () => {
       if (svgRef.current) {
@@ -65,7 +82,7 @@ export function SvgMovableBox({
     return () => {
       window.removeEventListener('resize', measureWidth)
     }
-  }, [currentSvgWidth, id])
+  }, [currentSvgWidth])
 
   const [pentagramLines, setPentagramLines] = useState<JSX.Element[]>([])
 
@@ -86,11 +103,13 @@ export function SvgMovableBox({
     }
     setPentagramLines(pentagram)
   }, [svgViewboxWidth])
+
+  //Clicking without touching any note :P inserts note
   const handleSvgClick = (event: MouseEvent) => {
-    if (!svgRef.current || mode != 1) return
+    if (!svgRef.current || mode != ADD_NOTE) return
 
     const svgRect = svgRef.current.getBoundingClientRect()
-    const clientY = event.clientY - svgRect.top
+    const clientY = event.clientY - svgRect.top - offsetYStart
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
@@ -142,6 +161,7 @@ export function SvgMovableBox({
     const actualBarTmp =
       allPentagramsData[indexBar].allBar[indexPentagram].currentNotes
     if (!actualBarTmp || actualBarTmp.length === 0) return []
+    // Calculing the max height
     let tmpYOffset = 0
     let minY = Infinity
     let maxY = -Infinity
@@ -169,7 +189,7 @@ export function SvgMovableBox({
 
     const fullHeigth = svgViewboxHeight
     if (fullHeigth <= maxY)
-      copyMaxHeight[1] = maxY - fullHeigth + newCircleRadius
+      copyMaxHeight[1] = maxY - fullHeigth + newCircleRadius + offsetYStart
     setMaxHeightPerBar((prevHeight) => {
       const newHeight = [...prevHeight]
       newHeight[indexPentagram] = [...newHeight[indexPentagram]]
