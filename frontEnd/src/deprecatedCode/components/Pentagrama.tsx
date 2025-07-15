@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef } from 'preact/hooks'
-import { ClaveSol } from '../assets/claves'
+import { ClaveSol } from '../../assets/claves'
 import { DisplayPentagramaContext } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/Mode'
 import { PentagramaBar } from './PentagramaBar'

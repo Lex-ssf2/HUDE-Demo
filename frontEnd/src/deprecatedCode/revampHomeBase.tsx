@@ -1,3 +1,5 @@
+//This probably doesnt work properly cuz some dependecies that got updated
+
 import {
   useState,
   useEffect,
@@ -14,11 +16,11 @@ import type {
   VerticalBarData,
   BarData,
   SelectedNote
-} from './revamp/interface/BarInterface'
+} from '../revamp/interface/BarInterface'
 import {
   DisplayVerticalBarContext,
   MainScoreContext
-} from './revamp/context/DisplayContext'
+} from '../revamp/context/DisplayContext'
 
 export function SvgMovableBox({
   onCircleAdded,
@@ -226,8 +228,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const [svgViewboxWidth, setSvgViewboxWidth] =
     useState<number>(MIN_VIEWBOX_WIDTH)
   const [svgViewboxHeight, setSvgViewboxHeight] = useState<number>(100)
-  const [currentNoteSize, setCurrentNoteSize] = useState<number>(1)
-  const [currentNote, setCurrentNote] = useState<CircleData | null>(null)
+  /*const [currentNoteSize, setCurrentNoteSize] = useState<number>(1)
+  const [currentNote, setCurrentNote] = useState<CircleData | null>(null)*/
 
   // Use a state for IDs to ensure consistency across renders
   const [pentagramUniqueIds, setPentagramUniqueIds] = useState<string[]>([])
@@ -305,14 +307,9 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   return (
     <DisplayVerticalBarContext.Provider
       value={{
-        setCurrentNote,
-        currentNote,
-        setSvgViewboxWidth,
         svgViewboxWidth,
         setSvgViewboxHeight,
-        svgViewboxHeight,
-        setCurrentNoteSize,
-        currentNoteSize
+        svgViewboxHeight
       }}
     >
       <article
@@ -509,13 +506,10 @@ export function MainScore() {
         maxHeight,
         setMaxHeightPerBar,
         maxPentagram,
-        setMaxPentagram,
         maxBar,
-        setMaxBar,
         allPentagramsData,
         setAllPentagramsData,
         mode,
-        setMode,
         currentNoteSize,
         setCurrentNoteSize,
         selectedNote,
