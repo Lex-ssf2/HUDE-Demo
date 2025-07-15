@@ -1,5 +1,5 @@
 export interface SvgMovableBoxProps {
-  onCircleAdded: (newCircleCount: number, noteList: CircleData[]) => void
+  onCircleAdded: (noteList: CircleData[]) => void
   id: string
   onCircleClicked: (
     indexBar: number,

@@ -122,15 +122,11 @@ export function SvgMovableBox({
       newCircleData
     )
     setAllPentagramsData(copyPentagram)
-    onCircleAdded(
-      actualPosition + (circleRadius + 10 * currentNoteSize),
-      copyPentagram[indexBar].allBar[indexPentagram].currentNotes
-    )
+    onCircleAdded(copyPentagram[indexBar].allBar[indexPentagram].currentNotes)
   }
 
   const handleCircleClick = useCallback(
     (circleDataToReturn: CircleData, event: MouseEvent) => {
-      console.log('huh')
       event.stopPropagation()
       if (onCircleClicked) {
         onCircleClicked(
@@ -217,7 +213,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     maxPentagram,
     allPentagramsData,
     setAllPentagramsData,
-    setSelectedNote
+    setSelectedNote,
+    mode
   } = mainScore
   if (maxPentagram == null) return
 
@@ -230,7 +227,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     useState<number>(MIN_VIEWBOX_WIDTH)
   const [svgViewboxHeight, setSvgViewboxHeight] = useState<number>(100)
   const [currentNoteSize, setCurrentNoteSize] = useState<number>(1)
-  const [mode, setMode] = useState<number>(0)
   const [currentNote, setCurrentNote] = useState<CircleData | null>(null)
 
   // Use a state for IDs to ensure consistency across renders
@@ -245,30 +241,38 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       }
       setPentagramUniqueIds(newIds)
     }
+    //Está aqui para que tome en cuenta despues de usar el remove note
+    if (mode === 2) {
+      console.log('huh')
+      const totalWidth = updateWidth({
+        maxPentagram,
+        indexBar,
+        allPentagramsData: allPentagramsData
+      })
+      console.log(totalWidth)
+      setSvgViewboxWidth(totalWidth)
+    }
   }, [allPentagramsData])
 
   const handleCircleAdded = useCallback(
-    (id: number, newCountForThisBox: number, noteList: CircleData[]) => {
-      let maxRequiredWidth = MIN_VIEWBOX_WIDTH
-      const requiredWidthForThisBox = newCountForThisBox
-      if (requiredWidthForThisBox > maxRequiredWidth) {
-        maxRequiredWidth = requiredWidthForThisBox
-      }
-      if (
-        maxRequiredWidth !== svgViewboxWidth &&
-        maxRequiredWidth > svgViewboxWidth
-      ) {
-        setSvgViewboxWidth(maxRequiredWidth)
-      }
+    (id: number, noteList: CircleData[]) => {
       const copyallPentagramsData = [...allPentagramsData]
+      const totalWidth = updateWidth({
+        maxPentagram,
+        indexBar,
+        allPentagramsData: copyallPentagramsData
+      })
+      console.log(totalWidth)
+      setSvgViewboxWidth(totalWidth)
       copyallPentagramsData[indexBar].allBar[id].currentNotes = noteList
       setAllPentagramsData(copyallPentagramsData)
     },
-    [MIN_VIEWBOX_WIDTH, MIN_ITEM_WIDTH, IDEAL_SPACING, svgViewboxWidth]
+    [allPentagramsData]
   )
 
   const handleCircleClickedInBox = useCallback(
     (barId: number, pentagramId: number, noteId: number) => {
+      console.log('hi')
       setSelectedNote({
         barIndex: barId,
         noteIndex: noteId,
@@ -283,9 +287,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       <SvgMovableBox
         key={id}
         id={id}
-        onCircleAdded={(count, noteList) =>
-          handleCircleAdded(i, count, noteList)
-        }
+        onCircleAdded={(noteList) => handleCircleAdded(i, noteList)}
         onCircleClicked={handleCircleClickedInBox}
         indexPentagram={i}
         indexBar={indexBar}
@@ -295,14 +297,14 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     pentagramUniqueIds,
     handleCircleAdded,
     handleCircleClickedInBox,
-    indexBar
+    indexBar,
+    svgViewboxWidth,
+    mode
   ])
 
   return (
     <DisplayVerticalBarContext.Provider
       value={{
-        mode,
-        setMode,
         setCurrentNote,
         currentNote,
         setSvgViewboxWidth,
@@ -327,28 +329,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   )
 }
 
-/*
-        <SvgMovableBox
-          id="box1"
-          onCircleAdded={(count, noteList) =>
-            handleCircleAdded('box1', count, noteList)
-          }
-          onCircleClicked={(index, id) => handleCircleClickedInBox(index, id)}
-          actualBar={allBars['box1']}
-          indexPentagram={0}
-          indexBar={indexBar}
-        />
-        <SvgMovableBox
-          id="box2"
-          onCircleAdded={(count, noteList) =>
-            handleCircleAdded('box2', count, noteList)
-          }
-          onCircleClicked={handleCircleClickedInBox}
-          actualBar={allBars['box2']}
-          indexPentagram={1}
-          indexBar={indexBar}
-        />
-*/
 export function MainScore() {
   const [maxHeight, setMaxHeight] = useState<number[][]>([[]])
   const [maxPentagram, setMaxPentagram] = useState<number>(3)
@@ -391,7 +371,6 @@ export function MainScore() {
         pentagramIndex < maxPentagram;
         pentagramIndex++
       ) {
-        //console.log(pentagramIndex, 'holaxd')
         if (copyallPentagramsData[i].allBar[pentagramIndex]?.currentNotes)
           continue
         copyallPentagramsData[i].allBar[pentagramIndex] = {
@@ -488,7 +467,22 @@ export function MainScore() {
         setAllPentagramsData(tmpAllBars)
       }
     }
-
+    if (mode === 2) {
+      currentNotesInBar.splice(selectedNote.noteIndex, 1)
+      const circleRadius = 20
+      let lastSize = 1
+      let tmpSize = 0
+      for (let i = 0; i < currentNotesInBar.length; i++) {
+        tmpSize += (circleRadius + 10) * lastSize
+        lastSize = currentNotesInBar[i].actualSize
+        currentNotesInBar[i].cx = tmpSize
+      }
+      tmpAllBars[selectedNote.barIndex].allBar[
+        selectedNote.currentPentagram
+      ].currentNotes = currentNotesInBar
+      setAllPentagramsData(tmpAllBars)
+      setSelectedNote({ barIndex: -1, noteIndex: -1, currentPentagram: -1 })
+    }
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
@@ -559,6 +553,18 @@ export function MainScore() {
         </button>
         <button onClick={() => setMode(0)}>Select</button>
         <button onClick={() => setMode(1)}>Add</button>
+        <button
+          onClick={() => {
+            setMode(2)
+            setSelectedNote({
+              barIndex: -1,
+              noteIndex: -1,
+              currentPentagram: -1
+            })
+          }}
+        >
+          Remove
+        </button>
         <button onClick={() => setCurrentNoteSize(1)}>1</button>
         <button onClick={() => setCurrentNoteSize(2)}>2</button>
         <button onClick={() => setCurrentNoteSize(4)}>3</button>
@@ -575,4 +581,37 @@ export function MainScore() {
       </section>
     </MainScoreContext.Provider>
   )
+}
+
+interface updateWidthProps {
+  maxPentagram: number
+  indexBar: number
+  allPentagramsData: VerticalBarData[]
+}
+
+export function updateWidth({
+  maxPentagram,
+  indexBar,
+  allPentagramsData
+}: updateWidthProps): number {
+  const NEW_CIRCLE_RADIUS = 20 / 2
+  const IDEAL_SPACING = 10
+  const MIN_ITEM_WIDTH = NEW_CIRCLE_RADIUS * 2 + IDEAL_SPACING
+  const MIN_VIEWBOX_WIDTH = MIN_ITEM_WIDTH * 5 + IDEAL_SPACING
+  let fullSize = MIN_VIEWBOX_WIDTH
+  const circleRadius = 20
+  //Codigo para saber el tamaño horizontal del compas
+  for (let i = 0; i < maxPentagram; i++) {
+    const allTMPNotes = allPentagramsData[indexBar].allBar[i].currentNotes
+    let lastSize = 1
+    const currentNoteLength = allTMPNotes.length
+    let tmpSize = 0
+    for (let j = 0; j < currentNoteLength; j++) {
+      tmpSize += (circleRadius + 10) * lastSize
+      lastSize = allTMPNotes[j].actualSize
+    }
+    tmpSize += (circleRadius + 10) * lastSize
+    fullSize = Math.max(fullSize, tmpSize)
+  }
+  return fullSize
 }

@@ -1,5 +1,5 @@
 import { render } from 'preact'
-import { MainScore } from './revampHome'
+import { MainScore } from './revamp/MainScore'
 
 render(
   <div>

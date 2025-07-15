@@ -7,8 +7,6 @@ import type {
 } from '../interface/BarInterface'
 
 export const DisplayVerticalBarContext = createContext<{
-  mode: number
-  setMode: Dispatch<SetStateAction<number>>
   currentNote: CircleData | null
   setCurrentNote: Dispatch<SetStateAction<CircleData | null>>
   svgViewboxWidth: number
