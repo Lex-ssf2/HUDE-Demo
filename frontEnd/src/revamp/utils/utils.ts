@@ -4,8 +4,8 @@ import {
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   NUMBER_OF_PENTAGRAM_LINES
-} from '../constants/constants'
-import { type UpdateWidthProps } from '../constants/types'
+} from '../enums/constants'
+import { type UpdateWidthProps } from '../enums/types'
 
 export function updateWidth({
   maxPentagram,

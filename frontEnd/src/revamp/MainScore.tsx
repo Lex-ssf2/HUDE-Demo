@@ -5,9 +5,9 @@ import {
   type SelectedNote,
   type VerticalBarData,
   type BarData
-} from './constants/types'
-import { ADD_NOTE, REMOVE_NOTE, SELECT_NOTE } from './constants/mode'
-import { CIRCLE_RADIUS, IDEAL_SPACING } from './constants/constants'
+} from './enums/types'
+import { ADD_NOTE, REMOVE_NOTE, SELECT_NOTE } from './enums/mode'
+import { CIRCLE_RADIUS, IDEAL_SPACING } from './enums/constants'
 
 /**
  *

@@ -10,15 +10,12 @@ import {
   DisplayVerticalBarContext,
   MainScoreContext
 } from '../context/DisplayContext'
-import {
-  type VerticalPentagramProps,
-  type CircleData
-} from '../constants/types'
+import { type VerticalPentagramProps, type CircleData } from '../enums/types'
 import {
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   NUMBER_OF_PENTAGRAM_LINES
-} from '../constants/constants'
+} from '../enums/constants'
 import { updateWidth } from '../utils/utils'
 
 /**

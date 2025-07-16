@@ -7,12 +7,12 @@ import {
   useEffect
 } from 'preact/hooks'
 import { type JSX } from 'preact/jsx-runtime'
-import { type CircleData, type SvgMovableBoxProps } from '../constants/types'
+import { type CircleData, type SvgMovableBoxProps } from '../enums/types'
 import {
   DisplayVerticalBarContext,
   MainScoreContext
 } from '../context/DisplayContext'
-import { ADD_NOTE } from '../constants/mode'
+import { ADD_NOTE } from '../enums/mode'
 
 /**
  *
@@ -110,6 +110,7 @@ export function SvgMovableBox({
 
     const svgRect = svgRef.current.getBoundingClientRect()
     const clientY = event.clientY - svgRect.top - offsetYStart
+    const clientX = event.clientX - svgRect.left
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
@@ -118,28 +119,42 @@ export function SvgMovableBox({
     const clickedCirclesData =
       copyPentagram[indexBar].allBar[indexPentagram].currentNotes
     let actualSize = circleRadius + 10
-    let lastSize = 0
-    for (let index = 0; index < clickedCirclesData.length; index++) {
-      lastSize = clickedCirclesData[index].actualSize
-      actualSize += (circleRadius + 10) * lastSize
-    }
-    const actualPosition = actualSize
+    let lastSize = 1
+    let isInMiddle = false
     const newCircleData = {
       id: nextCircleId.current++,
       cy: clickedCy,
-      cx: actualPosition,
+      cx: (circleRadius + 10) * lastSize,
       actualSize: currentNoteSize
     }
-    copyPentagram[indexBar].allBar[indexPentagram].currentNotes.push(
-      newCircleData
-    )
+    for (let index = 0; index < clickedCirclesData.length; index++) {
+      if (clientX < clickedCirclesData[index].cx && !isInMiddle) {
+        lastSize = currentNoteSize
+        newCircleData.cx = actualSize
+        clickedCirclesData.splice(index, 0, newCircleData)
+        copyPentagram[indexBar].allBar[indexPentagram].currentNotes =
+          clickedCirclesData
+        isInMiddle = true
+        actualSize += (circleRadius + 10) * lastSize
+        index++
+      }
+      clickedCirclesData[index].cx = actualSize
+      lastSize = clickedCirclesData[index].actualSize
+      actualSize += (circleRadius + 10) * lastSize
+    }
+    if (!isInMiddle) {
+      newCircleData.cx = actualSize
+      copyPentagram[indexBar].allBar[indexPentagram].currentNotes.push(
+        newCircleData
+      )
+    }
     setAllPentagramsData(copyPentagram)
     onCircleAdded(copyPentagram[indexBar].allBar[indexPentagram].currentNotes)
   }
 
   const handleCircleClick = useCallback(
     (circleDataToReturn: CircleData, event: MouseEvent) => {
-      event.stopPropagation()
+      //event.stopPropagation()
       if (onCircleClicked) {
         onCircleClicked(
           indexBar,
