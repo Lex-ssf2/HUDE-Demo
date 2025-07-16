@@ -5,7 +5,7 @@ import {
   IDEAL_SPACING,
   NUMBER_OF_PENTAGRAM_LINES
 } from '../enums/constants'
-import { type UpdateWidthProps } from '../enums/types'
+import { type UpdateWidthProps } from '../interface/types'
 
 export function updateWidth({
   maxPentagram,

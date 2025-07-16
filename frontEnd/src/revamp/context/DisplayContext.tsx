@@ -13,6 +13,7 @@ export const MainScoreContext = createContext<{
   setMaxHeightPerBar: Dispatch<SetStateAction<number[][][]>>
   maxPentagram: number
   maxBar: number
+  setMaxBar: Dispatch<SetStateAction<number>>
   allPentagramsData: VerticalBarData[]
   setAllPentagramsData: (data: VerticalBarData[]) => void
   mode: number

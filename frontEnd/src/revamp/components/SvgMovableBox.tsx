@@ -7,7 +7,7 @@ import {
   useEffect
 } from 'preact/hooks'
 import { type JSX } from 'preact/jsx-runtime'
-import { type CircleData, type SvgMovableBoxProps } from '../enums/types'
+import { type CircleData, type SvgMovableBoxProps } from '../interface/types'
 import {
   DisplayVerticalBarContext,
   MainScoreContext
@@ -107,10 +107,10 @@ export function SvgMovableBox({
   //Clicking without touching any note :P inserts note
   const handleSvgClick = (event: MouseEvent) => {
     if (!svgRef.current || mode != ADD_NOTE) return
-
     const svgRect = svgRef.current.getBoundingClientRect()
     const clientY = event.clientY - svgRect.top - offsetYStart
     const clientX = event.clientX - svgRect.left
+
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)

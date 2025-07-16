@@ -5,8 +5,14 @@ import {
   type SelectedNote,
   type VerticalBarData,
   type BarData
-} from './enums/types'
-import { ADD_NOTE, REMOVE_NOTE, SELECT_NOTE } from './enums/mode'
+} from './interface/types'
+import {
+  ADD_BAR,
+  ADD_NOTE,
+  REMOVE_BAR,
+  REMOVE_NOTE,
+  SELECT_NOTE
+} from './enums/mode'
 import { CIRCLE_RADIUS, IDEAL_SPACING } from './enums/constants'
 
 /**
@@ -227,6 +233,7 @@ export function MainScore() {
         setMaxHeightPerBar,
         maxPentagram,
         maxBar,
+        setMaxBar,
         allPentagramsData,
         setAllPentagramsData,
         mode,
@@ -245,10 +252,8 @@ export function MainScore() {
         >
           Pentagrama--
         </button>
-        <button onClick={() => setMaxBar((prev) => prev + 1)}>Bar++</button>
-        <button onClick={() => setMaxBar((prev) => Math.max(prev - 1, 1))}>
-          Bar--
-        </button>
+        <button onClick={() => setMode(ADD_BAR)}>Bar++</button>
+        <button onClick={() => setMode(REMOVE_BAR)}>Bar--</button>
         <button onClick={() => setMode(SELECT_NOTE)}>Select</button>
         <button onClick={() => setMode(ADD_NOTE)}>Add</button>
         <button
