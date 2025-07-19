@@ -248,6 +248,10 @@ export function SvgMovableBox({
             fill="rgba(0, 100, 255, 0.6)"
             stroke="blue"
             stroke-width="1"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleCircleClick(circleData, e)
+            }}
           />
           {extraLines}
           <rect
