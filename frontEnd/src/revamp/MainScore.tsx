@@ -168,10 +168,10 @@ export function MainScore() {
         let newCy = actualNote.cy
         switch (event.key) {
           case 'ArrowUp':
-            newCy -= 10
+            newCy -= 8
             break
           case 'ArrowDown':
-            newCy += 10
+            newCy += 8
             break
           default:
             return

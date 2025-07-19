@@ -50,7 +50,8 @@ export function SvgMovableBox({
     return
 
   const circleRadius: number = 20
-  const offsetYStart = 20
+  const offsetYStart = 0
+  const lineDiff = 16
 
   const svgRef = useRef<SVGSVGElement | null>(null)
 
@@ -88,7 +89,7 @@ export function SvgMovableBox({
 
   useEffect(() => {
     const pentagram: JSX.Element[] = []
-    const height = 15
+    const height = lineDiff
     for (let index = 0; index < 5; index++) {
       pentagram.push(
         <line
@@ -180,11 +181,43 @@ export function SvgMovableBox({
     let tmpYOffset = 0
     let minY = Infinity
     let maxY = -Infinity
-    const updatedBar = actualBarTmp.map(
-      (circleData) => {
-        minY = Math.min(minY, circleData.cy - newCircleRadius)
-        maxY = Math.max(maxY, circleData.cy + newCircleRadius)
-        return (
+    console.log(actualBarTmp.length)
+    const updatedBar = actualBarTmp.map((circleData) => {
+      minY = Math.min(minY, circleData.cy - newCircleRadius)
+      maxY = Math.max(maxY, circleData.cy + newCircleRadius)
+      const extraLines: JSX.Element[] = []
+      const extraLinesNum = circleData.cy / lineDiff
+      const aproxY =
+        Math.abs(extraLinesNum) - Math.floor(extraLinesNum) >= 0.9
+          ? Math.round(extraLinesNum)
+          : extraLinesNum
+      const height = circleData.cy <= 0 ? Math.abs(aproxY) : aproxY - 4
+      for (let index = 0; index <= height; index++) {
+        extraLines.push(
+          <line
+            x1={circleData.cx - 15}
+            y1={
+              circleData.cy <= 0
+                ? lineDiff * index * -1
+                : lineDiff * (index + 4)
+            }
+            x2={circleData.cx + 15}
+            y2={
+              circleData.cy <= 0
+                ? lineDiff * index * -1
+                : lineDiff * (index + 4)
+            }
+            stroke="black"
+            stroke-width="3"
+          />
+        )
+      }
+      return (
+        <svg
+          style={{
+            overflow: 'visible'
+          }}
+        >
           <circle
             key={circleData.id}
             cx={circleData.cx}
@@ -193,12 +226,24 @@ export function SvgMovableBox({
             fill="rgba(0, 100, 255, 0.6)"
             stroke="blue"
             stroke-width="1"
+          />
+          {extraLines}
+          <rect
+            x={circleData.cx - 10}
+            y={actualYOffset - offsetYStart}
+            width={20 * circleData.actualSize}
+            height={
+              svgViewboxHeight -
+              actualYOffset +
+              actualYOffsetBottom +
+              offsetYStart
+            }
+            fill="rgba(38, 0, 255, 0.18)"
             onClick={(e) => handleCircleClick(circleData, e)}
           />
-        )
-      },
-      [allPentagramsData]
-    )
+        </svg>
+      )
+    })
     const copyMaxHeight: number[] = [0, 0]
     if (tmpYOffset > minY) copyMaxHeight[0] = minY
 
@@ -212,7 +257,12 @@ export function SvgMovableBox({
       return newHeight
     })
     return updatedBar
-  }, [svgViewboxWidth, circleRadius, allPentagramsData, mode])
+  }, [
+    svgViewboxWidth,
+    allPentagramsData[indexBar].allBar[indexPentagram].currentNotes,
+    allPentagramsData[indexBar].allBar[indexPentagram].currentNotes.length,
+    svgViewboxHeight
+  ])
   return (
     <svg
       ref={svgRef}
