@@ -12,7 +12,8 @@ import {
   DisplayVerticalBarContext,
   MainScoreContext
 } from '../context/DisplayContext'
-import { ADD_NOTE } from '../enums/mode'
+import { DISPLAY_MODE } from '../enums/mode'
+import { LINE_DIFF } from '../enums/constants'
 
 /**
  *
@@ -51,7 +52,6 @@ export function SvgMovableBox({
 
   const circleRadius: number = 20
   const offsetYStart = 0
-  const lineDiff = 16
 
   const svgRef = useRef<SVGSVGElement | null>(null)
 
@@ -89,7 +89,7 @@ export function SvgMovableBox({
 
   useEffect(() => {
     const pentagram: JSX.Element[] = []
-    const height = lineDiff
+    const height = LINE_DIFF
     for (let index = 0; index < 5; index++) {
       pentagram.push(
         <line
@@ -107,15 +107,16 @@ export function SvgMovableBox({
 
   //Clicking without touching any note :P inserts note
   const handleSvgClick = (event: MouseEvent) => {
-    if (!svgRef.current || mode != ADD_NOTE) return
+    if (!svgRef.current || mode != DISPLAY_MODE.ADD_NOTE) return
     const svgRect = svgRef.current.getBoundingClientRect()
     const clientY = event.clientY - svgRect.top - offsetYStart
     const clientX = event.clientX - svgRect.left
-
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
     const clickedCy = yInSvgCoords + actualYOffset
+    const actualNoteYPos =
+      Math.round(clickedCy / (LINE_DIFF / 2)) * (LINE_DIFF / 2)
     const copyPentagram = [...allPentagramsData]
     const clickedCirclesData =
       copyPentagram[indexBar].allBar[indexPentagram].currentNotes
@@ -124,7 +125,7 @@ export function SvgMovableBox({
     let isInMiddle = false
     const newCircleData = {
       id: nextCircleId.current++,
-      cy: clickedCy,
+      cy: actualNoteYPos,
       cx: (circleRadius + 10) * lastSize,
       actualSize: currentNoteSize
     }
@@ -186,7 +187,7 @@ export function SvgMovableBox({
       minY = Math.min(minY, circleData.cy - newCircleRadius)
       maxY = Math.max(maxY, circleData.cy + newCircleRadius)
       const extraLines: JSX.Element[] = []
-      const extraLinesNum = circleData.cy / lineDiff
+      const extraLinesNum = circleData.cy / LINE_DIFF
       const aproxY =
         Math.abs(extraLinesNum) - Math.floor(extraLinesNum) >= 0.9
           ? Math.round(extraLinesNum)
@@ -198,14 +199,14 @@ export function SvgMovableBox({
             x1={circleData.cx - 15}
             y1={
               circleData.cy <= 0
-                ? lineDiff * index * -1
-                : lineDiff * (index + 4)
+                ? LINE_DIFF * index * -1
+                : LINE_DIFF * (index + 4)
             }
             x2={circleData.cx + 15}
             y2={
               circleData.cy <= 0
-                ? lineDiff * index * -1
-                : lineDiff * (index + 4)
+                ? LINE_DIFF * index * -1
+                : LINE_DIFF * (index + 4)
             }
             stroke="black"
             stroke-width="3"

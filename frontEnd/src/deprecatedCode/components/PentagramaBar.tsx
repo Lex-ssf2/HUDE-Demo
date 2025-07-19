@@ -1,6 +1,6 @@
 import type { BarData, NoteData } from '../interfaces/PentagramaInterface'
 import * as Icons from '../../assets/figuras'
-import { NOTE_DURATION } from '../enums/Notes'
+import { NOTE_DURATION } from '../../revamp/enums/Notes'
 /** A component that its basically a musical bar
  * @param barData It contains the id and all the notes data.
  * @param index Ref to the actual index.

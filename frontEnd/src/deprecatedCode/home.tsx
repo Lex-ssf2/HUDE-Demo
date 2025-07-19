@@ -8,7 +8,7 @@ import type {
   PentagramaState,
   BarData
 } from './interfaces/PentagramaInterface'
-import { NOTE_DURATION } from './enums/Notes'
+import { NOTE_DURATION } from '../revamp/enums/Notes'
 
 //This code is ass sorry its temp cuz I dont know how to sync all Bars
 export const noteSize = 20

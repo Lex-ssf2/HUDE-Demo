@@ -6,7 +6,7 @@ import type {
   NoteData
 } from '../interfaces/PentagramaInterface'
 import { noteSize } from '../home'
-import { allPosibleNotes } from '../enums/Notes'
+import { allPosibleNotes } from '../../revamp/enums/Notes'
 
 /**
  * Custom hook for handling the logic of placing a new note on a bar.

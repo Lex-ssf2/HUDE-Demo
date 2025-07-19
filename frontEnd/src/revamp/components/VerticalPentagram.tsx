@@ -22,7 +22,7 @@ import {
   NUMBER_OF_PENTAGRAM_LINES
 } from '../enums/constants'
 import { updateWidth } from '../utils/utils'
-import { ADD_BAR, REMOVE_BAR } from '../enums/mode'
+import { DISPLAY_MODE } from '../enums/mode'
 import type { BarData } from '../interface/BarInterface'
 
 /**
@@ -140,12 +140,12 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       barContent.push({ currentNotes: [] })
     }
     const initialData: VerticalBarData = { allBar: barContent }
-    if (mode == ADD_BAR) {
+    if (mode == DISPLAY_MODE.ADD_BAR) {
       currentId = clientX <= svgViewboxWidth / 2 ? indexBar : indexBar + 1
       setMaxBar((actualMax) => actualMax + 1)
       copyAllPentagramsData.splice(currentId, 0, initialData)
       setAllPentagramsData(copyAllPentagramsData)
-    } else if (mode == REMOVE_BAR) {
+    } else if (mode == DISPLAY_MODE.REMOVE_BAR) {
       setMaxBar((actualMax) => {
         if (actualMax <= 1)
           copyAllPentagramsData.splice(currentId, 1, initialData)
@@ -167,8 +167,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       <article
         style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
+          flexDirection: 'column'
         }}
         onClick={checkCollisionVertical}
         ref={barRef}

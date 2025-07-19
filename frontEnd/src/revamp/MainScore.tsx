@@ -6,14 +6,14 @@ import {
   type VerticalBarData,
   type BarData
 } from './interface/types'
+import { DISPLAY_MODE } from './enums/mode'
 import {
-  ADD_BAR,
-  ADD_NOTE,
-  REMOVE_BAR,
-  REMOVE_NOTE,
-  SELECT_NOTE
-} from './enums/mode'
-import { CIRCLE_RADIUS, IDEAL_SPACING } from './enums/constants'
+  CIRCLE_RADIUS,
+  IDEAL_SPACING,
+  LINE_DIFF,
+  START_BAR_COUNT,
+  START_PENTAGRAM_COUNT
+} from './enums/constants'
 
 /**
  *
@@ -22,9 +22,11 @@ import { CIRCLE_RADIUS, IDEAL_SPACING } from './enums/constants'
  */
 
 export function MainScore() {
-  const [maxPentagram, setMaxPentagram] = useState<number>(3)
-  const [maxBar, setMaxBar] = useState<number>(2)
-  const [mode, setMode] = useState<number>(SELECT_NOTE)
+  const [maxPentagram, setMaxPentagram] = useState<number>(
+    START_PENTAGRAM_COUNT
+  )
+  const [maxBar, setMaxBar] = useState<number>(START_BAR_COUNT)
+  const [mode, setMode] = useState<number>(DISPLAY_MODE.SELECT_NOTE)
   const [currentNoteSize, setCurrentNoteSize] = useState(1)
   const [selectedNote, setSelectedNote] = useState<SelectedNote>({
     barIndex: -1,
@@ -84,12 +86,15 @@ export function MainScore() {
     })
     //Resets removed bars
     setMaxHeight(() => Array(maxPentagram).fill([0, 0]))
-    setMaxHeightPerBar(() => {
+    setMaxHeightPerBar((oldMaxHeightBar) => {
+      const copyHeight = [...oldMaxHeightBar]
       const newHeightPerBar: number[][][] = []
       for (let p = 0; p < maxPentagram; p++) {
         newHeightPerBar[p] = []
         for (let b = 0; b < maxBar; b++) {
-          newHeightPerBar[p][b] = [0, 0]
+          if (copyHeight[p] && copyHeight[p][b])
+            newHeightPerBar[p][b] = copyHeight[p][b]
+          else newHeightPerBar[p][b] = [0, 0]
         }
       }
       return newHeightPerBar
@@ -102,7 +107,6 @@ export function MainScore() {
       .fill(null)
       .map(() => [Infinity, -Infinity])
 
-    let needsUpdate = false
     for (let p = 0; p < maxPentagram; p++) {
       for (let b = 0; b < maxBar; b++) {
         const currentMinY = maxHeightPerBar[p]?.[b]?.[0]
@@ -116,15 +120,11 @@ export function MainScore() {
         ) {
           newMaxHeight[p][0] = Math.min(newMaxHeight[p][0], currentMinY)
           newMaxHeight[p][1] = Math.max(newMaxHeight[p][1], currentMaxY)
-          needsUpdate = true
         }
       }
     }
 
-    if (
-      needsUpdate &&
-      JSON.stringify(newMaxHeight) !== JSON.stringify(maxHeight)
-    ) {
+    if (JSON.stringify(newMaxHeight) !== JSON.stringify(maxHeight)) {
       const finalizedMaxHeight = newMaxHeight.map((range) => [
         range[0] === Infinity ? 0 : range[0],
         range[1] === -Infinity ? 0 : range[1]
@@ -164,14 +164,14 @@ export function MainScore() {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (mode === SELECT_NOTE) {
+      if (mode === DISPLAY_MODE.SELECT_NOTE) {
         let newCy = actualNote.cy
         switch (event.key) {
           case 'ArrowUp':
-            newCy -= 8
+            newCy -= LINE_DIFF / 2
             break
           case 'ArrowDown':
-            newCy += 8
+            newCy += LINE_DIFF / 2
             break
           default:
             return
@@ -185,7 +185,7 @@ export function MainScore() {
       }
     }
 
-    if (mode === REMOVE_NOTE) {
+    if (mode === DISPLAY_MODE.REMOVE_NOTE) {
       updatedNotes.splice(selectedNote.noteIndex, 1)
       let lastSize = 1
       let tmpSize = 0
@@ -252,13 +252,15 @@ export function MainScore() {
         >
           Pentagrama--
         </button>
-        <button onClick={() => setMode(ADD_BAR)}>Bar++</button>
-        <button onClick={() => setMode(REMOVE_BAR)}>Bar--</button>
-        <button onClick={() => setMode(SELECT_NOTE)}>Select</button>
-        <button onClick={() => setMode(ADD_NOTE)}>Add</button>
+        <button onClick={() => setMode(DISPLAY_MODE.ADD_BAR)}>Bar++</button>
+        <button onClick={() => setMode(DISPLAY_MODE.REMOVE_BAR)}>Bar--</button>
+        <button onClick={() => setMode(DISPLAY_MODE.SELECT_NOTE)}>
+          Select
+        </button>
+        <button onClick={() => setMode(DISPLAY_MODE.ADD_NOTE)}>Add</button>
         <button
           onClick={() => {
-            setMode(REMOVE_NOTE)
+            setMode(DISPLAY_MODE.REMOVE_NOTE)
             setSelectedNote({
               barIndex: -1,
               noteIndex: -1,

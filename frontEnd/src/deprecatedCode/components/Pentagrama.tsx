@@ -9,7 +9,7 @@ import { useSynchronizedScroll } from '../hooks/useSynchronizedScroll'
 import { useBarManagement } from '../hooks/useBarManagement'
 import { useNotePlacement } from '../hooks/useNotePlacement'
 import { usePentagramLines } from '../hooks/usePentagramLines'
-import { allPosibleNotes } from '../enums/Notes'
+import { allPosibleNotes } from '../../revamp/enums/Notes'
 
 /** You know what this does */
 
