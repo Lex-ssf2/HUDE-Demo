@@ -14,6 +14,7 @@ import {
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { LINE_DIFF } from '../enums/constants'
+import { allPosibleNotes } from '../enums/Notes'
 
 /**
  *
@@ -123,11 +124,22 @@ export function SvgMovableBox({
     let actualSize = circleRadius + 10
     let lastSize = 1
     let isInMiddle = false
+    //The 5 is a number that changes to represent the first note of X key
+    const actualNoteName =
+      allPosibleNotes[
+        (allPosibleNotes.length +
+          5 -
+          (actualNoteYPos % allPosibleNotes.length)) %
+          allPosibleNotes.length
+      ]
+    console.log(actualNoteName)
     const newCircleData = {
       id: nextCircleId.current++,
       cy: actualNoteYPos,
       cx: (circleRadius + 10) * lastSize,
-      actualSize: currentNoteSize
+      actualSize: currentNoteSize,
+      noteName: `${actualNoteName}`,
+      actualIndex: actualNoteYPos
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
       if (clientX < clickedCirclesData[index].cx && !isInMiddle) {
@@ -177,7 +189,16 @@ export function SvgMovableBox({
     if (!allPentagramsData[indexBar]) return
     const actualBarTmp =
       allPentagramsData[indexBar].allBar[indexPentagram].currentNotes
-    if (!actualBarTmp || actualBarTmp.length === 0) return []
+    const copyMaxHeight: number[] = [0, 0]
+    if (!actualBarTmp || actualBarTmp.length === 0) {
+      setMaxHeightPerBar((prevHeight) => {
+        const newHeight = [...prevHeight]
+        newHeight[indexPentagram] = [...newHeight[indexPentagram]]
+        newHeight[indexPentagram][indexBar] = copyMaxHeight
+        return newHeight
+      })
+      return []
+    }
     // Calculing the max height
     let tmpYOffset = 0
     let minY = Infinity
@@ -245,7 +266,6 @@ export function SvgMovableBox({
         </svg>
       )
     })
-    const copyMaxHeight: number[] = [0, 0]
     if (tmpYOffset > minY) copyMaxHeight[0] = minY
 
     const fullHeigth = svgViewboxHeight

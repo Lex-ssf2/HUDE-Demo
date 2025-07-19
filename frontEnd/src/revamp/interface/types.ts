@@ -3,6 +3,8 @@ export interface CircleData {
   cy: number
   cx: number
   actualSize: number
+  noteName: string
+  actualIndex: number
 }
 
 export interface BarData {

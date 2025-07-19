@@ -1,3 +1,5 @@
+import type { CircleData } from './types'
+
 export interface SvgMovableBoxProps {
   onCircleAdded: (noteList: CircleData[]) => void
   id: string
@@ -11,13 +13,6 @@ export interface SvgMovableBoxProps {
 }
 export interface VerticalPentagramProps {
   indexBar: number
-}
-
-export interface CircleData {
-  cx: number
-  actualSize: number
-  id: number
-  cy: number
 }
 
 export interface VerticalBarData {
