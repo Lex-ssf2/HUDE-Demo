@@ -5,6 +5,8 @@ export interface CircleData {
   actualSize: number
   noteName: string
   actualIndex: number
+  noteDuration: number
+  status: string
 }
 
 export interface BarData {

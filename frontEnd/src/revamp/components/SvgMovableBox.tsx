@@ -14,7 +14,7 @@ import {
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { LINE_DIFF } from '../enums/constants'
-import { allPosibleNotes } from '../enums/Notes'
+import { allPosibleNotes, NOTE_DURATION } from '../enums/Notes'
 
 /**
  *
@@ -133,13 +133,27 @@ export function SvgMovableBox({
           allPosibleNotes.length
       ]
     console.log(actualNoteName)
+    let actualDuration = 0
+    switch (currentNoteSize) {
+      case 1:
+        actualDuration = NOTE_DURATION.NEGRA
+        break
+      case 2:
+        actualDuration = NOTE_DURATION.BLANCA
+        break
+      case 4:
+        actualDuration = NOTE_DURATION.REDONDA
+        break
+    }
     const newCircleData = {
       id: nextCircleId.current++,
       cy: actualNoteYPos,
       cx: (circleRadius + 10) * lastSize,
       actualSize: currentNoteSize,
       noteName: `${actualNoteName}`,
-      actualIndex: actualNoteYPos
+      actualIndex: actualNoteYPos,
+      status: 'ok',
+      noteDuration: actualDuration
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
       if (clientX < clickedCirclesData[index].cx && !isInMiddle) {

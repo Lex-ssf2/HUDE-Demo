@@ -225,7 +225,7 @@ export function MainScore() {
       <VerticalPentagram key={id} indexBar={i} />
     ))
   }, [barUniqueIds])
-
+  console.log(allPentagramsData)
   return (
     <MainScoreContext.Provider
       value={{
