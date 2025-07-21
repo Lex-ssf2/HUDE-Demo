@@ -14,7 +14,12 @@ import {
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { LINE_DIFF } from '../enums/constants'
-import { allPosibleNotes, NOTE_DURATION } from '../enums/Notes'
+import {
+  ALL_POSIBLE_NOTES,
+  MIDI_BASE_VALUE,
+  NOTE_DURATION,
+  SEMITONE_DIFF
+} from '../enums/Notes'
 
 /**
  *
@@ -125,14 +130,20 @@ export function SvgMovableBox({
     let lastSize = 1
     let isInMiddle = false
     //The 5 is a number that changes to represent the first note of X key
-    const actualNoteName =
-      allPosibleNotes[
-        (allPosibleNotes.length +
-          5 -
-          (actualNoteYPos % allPosibleNotes.length)) %
-          allPosibleNotes.length
-      ]
-    console.log(actualNoteName)
+    const GSecondLine = 5
+    const difference = ALL_POSIBLE_NOTES.length - GSecondLine
+    const startNumScale = 5
+    const noteIndex =
+      (ALL_POSIBLE_NOTES.length +
+        GSecondLine -
+        (actualNoteYPos % ALL_POSIBLE_NOTES.length)) %
+      ALL_POSIBLE_NOTES.length
+    const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
+    const actualScaleNum =
+      startNumScale +
+      Math.floor((GSecondLine - difference - actualNoteYPos / 8) / 7)
+    const midiValue =
+      MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
     let actualDuration = 0
     switch (currentNoteSize) {
       case 1:
@@ -151,9 +162,10 @@ export function SvgMovableBox({
       cx: (circleRadius + 10) * lastSize,
       actualSize: currentNoteSize,
       noteName: `${actualNoteName}`,
-      actualIndex: actualNoteYPos,
+      midiValue: midiValue,
       status: 'ok',
-      noteDuration: actualDuration
+      noteDuration: actualDuration,
+      scaleNum: actualScaleNum
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
       if (clientX < clickedCirclesData[index].cx && !isInMiddle) {
@@ -217,7 +229,6 @@ export function SvgMovableBox({
     let tmpYOffset = 0
     let minY = Infinity
     let maxY = -Infinity
-    console.log(actualBarTmp.length)
     const updatedBar = actualBarTmp.map((circleData) => {
       minY = Math.min(minY, circleData.cy - newCircleRadius)
       maxY = Math.max(maxY, circleData.cy + newCircleRadius)

@@ -4,8 +4,9 @@ export interface CircleData {
   cx: number
   actualSize: number
   noteName: string
-  actualIndex: number
+  midiValue: number
   noteDuration: number
+  scaleNum: number
   status: string
 }
 

@@ -9,7 +9,7 @@ import { useSynchronizedScroll } from '../hooks/useSynchronizedScroll'
 import { useBarManagement } from '../hooks/useBarManagement'
 import { useNotePlacement } from '../hooks/useNotePlacement'
 import { usePentagramLines } from '../hooks/usePentagramLines'
-import { allPosibleNotes } from '../../revamp/enums/Notes'
+import { ALL_POSIBLE_NOTES } from '../../revamp/enums/Notes'
 
 /** You know what this does */
 
@@ -108,11 +108,11 @@ export function Pentagrama({
           switch (event.key) {
             case 'ArrowUp':
               copyBars[barIndex].notes[noteIndex].y = (note.y || 0) - 10
-              indexByNote = allPosibleNotes.indexOf(
+              indexByNote = ALL_POSIBLE_NOTES.indexOf(
                 copyBars[barIndex].notes[noteIndex].noteName
               )
               copyBars[barIndex].notes[noteIndex].noteName =
-                allPosibleNotes[(indexByNote + 1) % allPosibleNotes.length]
+                ALL_POSIBLE_NOTES[(indexByNote + 1) % ALL_POSIBLE_NOTES.length]
               copyBars[barIndex].notes[noteIndex].noteNumber++
               setBars(copyBars)
               setSelectNote({
@@ -124,13 +124,13 @@ export function Pentagrama({
               break
             case 'ArrowDown':
               copyBars[barIndex].notes[noteIndex].y = (note.y || 0) + 10
-              indexByNote = allPosibleNotes.indexOf(
+              indexByNote = ALL_POSIBLE_NOTES.indexOf(
                 copyBars[barIndex].notes[noteIndex].noteName
               )
               copyBars[barIndex].notes[noteIndex].noteName =
-                allPosibleNotes[
-                  (indexByNote - 1 + allPosibleNotes.length) %
-                    allPosibleNotes.length
+                ALL_POSIBLE_NOTES[
+                  (indexByNote - 1 + ALL_POSIBLE_NOTES.length) %
+                    ALL_POSIBLE_NOTES.length
                 ]
               copyBars[barIndex].notes[noteIndex].noteNumber--
               setBars(copyBars)

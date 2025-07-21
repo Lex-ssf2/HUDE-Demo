@@ -6,7 +6,7 @@ import type {
   NoteData
 } from '../interfaces/PentagramaInterface'
 import { noteSize } from '../home'
-import { allPosibleNotes } from '../../revamp/enums/Notes'
+import { ALL_POSIBLE_NOTES } from '../../revamp/enums/Notes'
 
 /**
  * Custom hook for handling the logic of placing a new note on a bar.
@@ -52,15 +52,15 @@ export function useNotePlacement(
       const actualNoteNumber =
         ((allLines[allLines.length - 1].y - closestY) / noteSize) * 2 + 1
 
-      const actualNoteName = actualNoteNumber % allPosibleNotes.length
+      const actualNoteName = actualNoteNumber % ALL_POSIBLE_NOTES.length
 
-      console.log(allPosibleNotes[actualNoteName])
+      console.log(ALL_POSIBLE_NOTES[actualNoteName])
       const newNote: NoteData = {
         id: `note-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         x: actualClickXRelativeToBar,
         y: closestY,
         actualSize: (1 / noteDuration) * 100, // WIP,
-        noteName: allPosibleNotes[actualNoteName],
+        noteName: ALL_POSIBLE_NOTES[actualNoteName],
         noteNumber: actualNoteNumber,
         currentClassId: 'nota',
         duration: noteDuration

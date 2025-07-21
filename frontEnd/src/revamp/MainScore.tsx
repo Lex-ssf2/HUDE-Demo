@@ -14,6 +14,11 @@ import {
   START_BAR_COUNT,
   START_PENTAGRAM_COUNT
 } from './enums/constants'
+import {
+  ALL_POSIBLE_NOTES,
+  MIDI_BASE_VALUE,
+  SEMITONE_DIFF
+} from './enums/Notes'
 
 /**
  *
@@ -166,17 +171,37 @@ export function MainScore() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (mode === DISPLAY_MODE.SELECT_NOTE) {
         let newCy = actualNote.cy
+        const difference =
+          ALL_POSIBLE_NOTES.indexOf('C') - ALL_POSIBLE_NOTES.indexOf('A')
+        let noteIndex =
+          ALL_POSIBLE_NOTES.indexOf(actualNote.noteName) + difference
+        let scaleNum = actualNote.scaleNum
         switch (event.key) {
           case 'ArrowUp':
             newCy -= LINE_DIFF / 2
+            noteIndex++
             break
           case 'ArrowDown':
             newCy += LINE_DIFF / 2
+            noteIndex--
             break
           default:
             return
         }
-        const updatedNote = { ...actualNote, cy: newCy }
+        if (noteIndex < 0) scaleNum--
+        else if (noteIndex > ALL_POSIBLE_NOTES.length) scaleNum++
+        noteIndex += 7 - difference
+        noteIndex %= ALL_POSIBLE_NOTES.length
+        const midiValue =
+          MIDI_BASE_VALUE[noteIndex] + (scaleNum - 1) * SEMITONE_DIFF
+        const updatedNote = {
+          ...actualNote,
+          cy: newCy,
+          midiValue,
+          scaleNum,
+          noteName: ALL_POSIBLE_NOTES[noteIndex]
+        }
+        console.log(updatedNote)
         updatedNotes[selectedNote.noteIndex] = updatedNote
         tmpAllBars[selectedNote.barIndex].allBar[
           selectedNote.currentPentagram
@@ -225,7 +250,7 @@ export function MainScore() {
       <VerticalPentagram key={id} indexBar={i} />
     ))
   }, [barUniqueIds])
-  console.log(allPentagramsData)
+  //console.log(allPentagramsData)
   return (
     <MainScoreContext.Provider
       value={{
