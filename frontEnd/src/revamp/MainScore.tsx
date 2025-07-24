@@ -170,28 +170,32 @@ export function MainScore() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (mode === DISPLAY_MODE.SELECT_NOTE) {
+        /*
+        IMPORTANTE AÑADIR INFO DE LA CLAVE QUE TIENE LA BARRA
+        */
         let newCy = actualNote.cy
-        const difference =
-          ALL_POSIBLE_NOTES.indexOf('C') - ALL_POSIBLE_NOTES.indexOf('A')
-        let noteIndex =
-          ALL_POSIBLE_NOTES.indexOf(actualNote.noteName) + difference
-        let scaleNum = actualNote.scaleNum
         switch (event.key) {
           case 'ArrowUp':
             newCy -= LINE_DIFF / 2
-            noteIndex++
             break
           case 'ArrowDown':
             newCy += LINE_DIFF / 2
-            noteIndex--
             break
           default:
             return
         }
-        if (noteIndex < 0) scaleNum--
-        else if (noteIndex > ALL_POSIBLE_NOTES.length) scaleNum++
-        noteIndex += 7 - difference
-        noteIndex %= ALL_POSIBLE_NOTES.length
+        const GSecondLine = 5
+        const difference = ALL_POSIBLE_NOTES.length - GSecondLine
+        const startNumScale = 5
+        const noteIndex =
+          (ALL_POSIBLE_NOTES.length +
+            GSecondLine -
+            (newCy % ALL_POSIBLE_NOTES.length)) %
+          ALL_POSIBLE_NOTES.length
+        const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
+        const scaleNum =
+          startNumScale + Math.floor((GSecondLine - difference - newCy / 8) / 7)
+        //console.log(scaleNum)
         const midiValue =
           MIDI_BASE_VALUE[noteIndex] + (scaleNum - 1) * SEMITONE_DIFF
         const updatedNote = {
@@ -199,9 +203,9 @@ export function MainScore() {
           cy: newCy,
           midiValue,
           scaleNum,
-          noteName: ALL_POSIBLE_NOTES[noteIndex]
+          noteName: actualNoteName
         }
-        console.log(updatedNote)
+        //console.log(updatedNote)
         updatedNotes[selectedNote.noteIndex] = updatedNote
         tmpAllBars[selectedNote.barIndex].allBar[
           selectedNote.currentPentagram
@@ -251,6 +255,27 @@ export function MainScore() {
     ))
   }, [barUniqueIds])
   //console.log(allPentagramsData)
+  const sendCurrentData = async () => {
+    try {
+      const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(allPentagramsData)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data: VerticalBarData[] = await response.json()
+      setAllPentagramsData(data)
+      console.log('Data fetched and state updated successfully:', data)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    }
+  }
   return (
     <MainScoreContext.Provider
       value={{
@@ -298,6 +323,7 @@ export function MainScore() {
         <button onClick={() => setCurrentNoteSize(1)}>Note Size 1</button>
         <button onClick={() => setCurrentNoteSize(2)}>Note Size 2</button>
         <button onClick={() => setCurrentNoteSize(4)}>Note Size 3</button>
+        <button onClick={sendCurrentData}>Fetching</button>
       </div>
       <section
         style={{

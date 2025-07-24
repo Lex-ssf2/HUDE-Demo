@@ -129,6 +129,9 @@ export function SvgMovableBox({
     let actualSize = circleRadius + 10
     let lastSize = 1
     let isInMiddle = false
+    /*
+        IMPORTANTE AÑADIR INFO DE LA CLAVE QUE TIENE LA BARRA
+    */
     //The 5 is a number that changes to represent the first note of X key
     const GSecondLine = 5
     const difference = ALL_POSIBLE_NOTES.length - GSecondLine
@@ -289,7 +292,11 @@ export function SvgMovableBox({
               actualYOffsetBottom +
               offsetYStart
             }
-            fill="rgba(38, 0, 255, 0.18)"
+            fill={
+              circleData.status == 'ok'
+                ? 'rgba(38, 0, 255, 0)'
+                : 'rgba(255, 0, 0, 0.18)'
+            }
             onClick={(e) => handleCircleClick(circleData, e)}
           />
         </svg>
