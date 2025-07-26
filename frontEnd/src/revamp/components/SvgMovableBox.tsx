@@ -13,7 +13,7 @@ import {
   MainScoreContext
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
-import { LINE_DIFF } from '../enums/constants'
+import { CIRCLE_RADIUS, LINE_DIFF, MAX_NOTE_SIZE } from '../enums/constants'
 import {
   ALL_POSIBLE_NOTES,
   MIDI_BASE_VALUE,
@@ -148,27 +148,14 @@ export function SvgMovableBox({
       Math.floor((GSecondLine - difference - actualNoteYPos / 8) / 7)
     const midiValue =
       MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
-    let actualDuration = 0
-    switch (currentNoteSize) {
-      case 1:
-        actualDuration = NOTE_DURATION.NEGRA
-        break
-      case 2:
-        actualDuration = NOTE_DURATION.BLANCA
-        break
-      case 4:
-        actualDuration = NOTE_DURATION.REDONDA
-        break
-    }
     const newCircleData = {
       id: nextCircleId.current++,
       cy: actualNoteYPos,
-      cx: (circleRadius + 10) * lastSize,
-      actualSize: currentNoteSize,
+      cx: MAX_NOTE_SIZE / currentNoteSize,
       noteName: `${actualNoteName}`,
       midiValue: midiValue,
       status: 'ok',
-      noteDuration: actualDuration,
+      noteDuration: currentNoteSize,
       scaleNum: actualScaleNum
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
@@ -179,12 +166,12 @@ export function SvgMovableBox({
         copyPentagram[indexBar].allBar[indexPentagram].currentNotes =
           clickedCirclesData
         isInMiddle = true
-        actualSize += (circleRadius + 10) * lastSize
+        actualSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
         index++
       }
       clickedCirclesData[index].cx = actualSize
-      lastSize = clickedCirclesData[index].actualSize
-      actualSize += (circleRadius + 10) * lastSize
+      lastSize = clickedCirclesData[index].noteDuration
+      actualSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
     }
     if (!isInMiddle) {
       newCircleData.cx = actualSize
@@ -288,7 +275,7 @@ export function SvgMovableBox({
           <rect
             x={circleData.cx - 10}
             y={actualYOffset - offsetYStart}
-            width={20 * circleData.actualSize}
+            width={MAX_NOTE_SIZE / circleData.noteDuration + CIRCLE_RADIUS}
             height={
               svgViewboxHeight -
               actualYOffset +

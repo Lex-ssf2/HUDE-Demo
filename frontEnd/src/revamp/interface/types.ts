@@ -2,7 +2,6 @@ export interface CircleData {
   id: number
   cy: number
   cx: number
-  actualSize: number
   noteName: string
   midiValue: number
   noteDuration: number

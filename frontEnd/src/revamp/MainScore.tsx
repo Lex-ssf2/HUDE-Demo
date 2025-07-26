@@ -9,14 +9,15 @@ import {
 import { DISPLAY_MODE } from './enums/mode'
 import {
   CIRCLE_RADIUS,
-  IDEAL_SPACING,
   LINE_DIFF,
+  MAX_NOTE_SIZE,
   START_BAR_COUNT,
   START_PENTAGRAM_COUNT
 } from './enums/constants'
 import {
   ALL_POSIBLE_NOTES,
   MIDI_BASE_VALUE,
+  NOTE_DURATION,
   SEMITONE_DIFF
 } from './enums/Notes'
 
@@ -217,11 +218,11 @@ export function MainScore() {
     if (mode === DISPLAY_MODE.REMOVE_NOTE) {
       updatedNotes.splice(selectedNote.noteIndex, 1)
       let lastSize = 1
-      let tmpSize = 0
+      let tmpSize = CIRCLE_RADIUS + 10
       for (let i = 0; i < updatedNotes.length; i++) {
-        tmpSize += (CIRCLE_RADIUS + IDEAL_SPACING) * lastSize
-        lastSize = updatedNotes[i].actualSize
+        lastSize = updatedNotes[i].noteDuration
         updatedNotes[i].cx = tmpSize
+        tmpSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
       }
       tmpAllBars[selectedNote.barIndex].allBar[
         selectedNote.currentPentagram
@@ -320,9 +321,15 @@ export function MainScore() {
         >
           Remove
         </button>
-        <button onClick={() => setCurrentNoteSize(1)}>Note Size 1</button>
-        <button onClick={() => setCurrentNoteSize(2)}>Note Size 2</button>
-        <button onClick={() => setCurrentNoteSize(4)}>Note Size 3</button>
+        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.NEGRA)}>
+          Negra
+        </button>
+        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.BLANCA)}>
+          Blanca
+        </button>
+        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.REDONDA)}>
+          Redonda
+        </button>
         <button onClick={sendCurrentData}>Fetching</button>
       </div>
       <section
