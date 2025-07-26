@@ -20,6 +20,7 @@ import {
   NOTE_DURATION,
   SEMITONE_DIFF
 } from '../enums/Notes'
+import { Blanca, Negra, Redonda } from '../assets/Notes'
 
 /**
  *
@@ -262,25 +263,27 @@ export function SvgMovableBox({
           />
         )
       }
+      /*
+          <circle
+            key={circleData.id}
+            cx={circleData.cx}
+            cy={circleData.cy}
+            r={newCircleRadius}
+            fill="rgba(0, 100, 255, 0.0)"
+            stroke="blue"
+            stroke-width="1"
+          />
+      */
       return (
         <svg
           style={{
             overflow: 'visible'
           }}
         >
-          <circle
-            key={circleData.id}
-            cx={circleData.cx}
-            cy={circleData.cy}
-            r={newCircleRadius}
-            fill="rgba(0, 100, 255, 0.6)"
-            stroke="blue"
-            stroke-width="1"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleCircleClick(circleData, e)
-            }}
-          />
+          {renderFigure(circleData, (e) => {
+            e.stopPropagation()
+            handleCircleClick(circleData, e)
+          })}
           {extraLines}
           <rect
             x={circleData.cx - 10}
@@ -338,4 +341,101 @@ export function SvgMovableBox({
       {renderedCircles}
     </svg>
   )
+}
+
+const renderFigure = (
+  noteInfo: CircleData,
+  onClick: (event: MouseEvent) => void
+) => {
+  const X_DISTANCE = 9
+  const STEM_LENGTH = 45
+  const STEM_WIDTH = 2.7
+  const MEDIUM_VALUE = 8 * 4
+  switch (noteInfo.noteDuration) {
+    case NOTE_DURATION.REDONDA:
+      return (
+        <Redonda
+          key={noteInfo.id}
+          x={noteInfo.cx}
+          y={noteInfo.cy}
+          onClick={onClick}
+        />
+      )
+      break
+    case NOTE_DURATION.BLANCA:
+      return (
+        <svg
+          style={{
+            overflow: 'visible'
+          }}
+        >
+          <line
+            x1={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            x2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            y1={noteInfo.cy}
+            y2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cy - STEM_LENGTH
+                : noteInfo.cy + STEM_LENGTH
+            }
+            stroke="black"
+            stroke-width={STEM_WIDTH}
+          />
+          <Blanca
+            key={noteInfo.id}
+            x={noteInfo.cx}
+            y={noteInfo.cy}
+            onClick={onClick}
+          />
+        </svg>
+      )
+      break
+    case NOTE_DURATION.NEGRA:
+      return (
+        <svg
+          style={{
+            overflow: 'visible'
+          }}
+        >
+          <line
+            x1={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            x2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            y1={noteInfo.cy}
+            y2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cy - STEM_LENGTH
+                : noteInfo.cy + STEM_LENGTH
+            }
+            stroke="black"
+            stroke-width={STEM_WIDTH}
+          />
+          <Negra
+            key={noteInfo.id}
+            x={noteInfo.cx}
+            y={noteInfo.cy}
+            onClick={onClick}
+          />
+        </svg>
+      )
+      break
+    default:
+      return <></>
+      break
+  }
 }
