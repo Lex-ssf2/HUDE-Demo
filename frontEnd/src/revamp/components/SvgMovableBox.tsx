@@ -13,7 +13,7 @@ import {
   MainScoreContext
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
-import { CIRCLE_RADIUS, LINE_DIFF, MAX_NOTE_SIZE } from '../enums/constants'
+import { LINE_DIFF, MAX_NOTE_SIZE } from '../enums/constants'
 import {
   ALL_POSIBLE_NOTES,
   MIDI_BASE_VALUE,
@@ -166,12 +166,12 @@ export function SvgMovableBox({
         copyPentagram[indexBar].allBar[indexPentagram].currentNotes =
           clickedCirclesData
         isInMiddle = true
-        actualSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
+        actualSize += MAX_NOTE_SIZE / lastSize
         index++
       }
       clickedCirclesData[index].cx = actualSize
       lastSize = clickedCirclesData[index].noteDuration
-      actualSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
+      actualSize += MAX_NOTE_SIZE / lastSize
     }
     if (!isInMiddle) {
       newCircleData.cx = actualSize
@@ -275,7 +275,7 @@ export function SvgMovableBox({
           <rect
             x={circleData.cx - 10}
             y={actualYOffset - offsetYStart}
-            width={MAX_NOTE_SIZE / circleData.noteDuration + CIRCLE_RADIUS}
+            width={MAX_NOTE_SIZE / circleData.noteDuration}
             height={
               svgViewboxHeight -
               actualYOffset +

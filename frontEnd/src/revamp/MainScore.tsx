@@ -222,7 +222,7 @@ export function MainScore() {
       for (let i = 0; i < updatedNotes.length; i++) {
         lastSize = updatedNotes[i].noteDuration
         updatedNotes[i].cx = tmpSize
-        tmpSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
+        tmpSize += MAX_NOTE_SIZE / lastSize
       }
       tmpAllBars[selectedNote.barIndex].allBar[
         selectedNote.currentPentagram
@@ -257,13 +257,17 @@ export function MainScore() {
   }, [barUniqueIds])
   //console.log(allPentagramsData)
   const sendCurrentData = async () => {
+    console.log(JSON.stringify(allPentagramsData))
     try {
       const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(allPentagramsData)
+        body: JSON.stringify(allPentagramsData).replace(
+          '"status":"error"',
+          '"status":"ok"'
+        )
       })
 
       if (!response.ok) {

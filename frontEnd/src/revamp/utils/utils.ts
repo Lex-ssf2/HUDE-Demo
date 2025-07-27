@@ -26,7 +26,7 @@ export function updateWidth({
     let tmpSize = 0
     for (let j = 0; j < allTMPNotes.length; j++) {
       lastSize = allTMPNotes[j].noteDuration
-      tmpSize += MAX_NOTE_SIZE / lastSize + CIRCLE_RADIUS
+      tmpSize += MAX_NOTE_SIZE / lastSize
     }
     tmpSize += MAX_NOTE_SIZE / lastSize
     fullSize = Math.max(fullSize, tmpSize)
