@@ -31,6 +31,9 @@ export function MainScore() {
   const [maxPentagram, setMaxPentagram] = useState<number>(
     START_PENTAGRAM_COUNT
   )
+  const expectedWidth = 1951
+  const [initialScale, setInitialScale] = useState(0)
+  const [currentScale, setCurrentScale] = useState(1)
   const [maxBar, setMaxBar] = useState<number>(START_BAR_COUNT)
   const [mode, setMode] = useState<number>(DISPLAY_MODE.SELECT_NOTE)
   const [currentNoteSize, setCurrentNoteSize] = useState(1)
@@ -281,6 +284,22 @@ export function MainScore() {
       console.error('Error fetching data:', error)
     }
   }
+  /*
+   * Resize with the actual navigator size WIP
+   **/
+  useEffect(() => {
+    const measureWidth = () => {
+      const expectedWidth = 1951
+      setInitialScale(
+        window.innerWidth > 768 ? window.innerWidth / expectedWidth : 0.9
+      )
+    }
+    measureWidth()
+    window.addEventListener('resize', measureWidth)
+    return () => {
+      window.removeEventListener('resize', measureWidth)
+    }
+  }, [])
   return (
     <MainScoreContext.Provider
       value={{
@@ -335,13 +354,21 @@ export function MainScore() {
           Redonda
         </button>
         <button onClick={sendCurrentData}>Fetching</button>
+        <button onClick={() => setCurrentScale((prev) => prev + 0.1)}>
+          Zoom In
+        </button>
+        <button
+          onClick={() => setCurrentScale((prev) => Math.max(prev - 0.1, 0.5))}
+        >
+          Zoom Out
+        </button>
       </div>
       <section
         style={{
           display: 'flex',
-          border: '1px solid blue',
-          height: '100%',
-          width: '100%'
+          width: 'auto',
+          transform: `scale(${initialScale * currentScale})`,
+          transformOrigin: 'top left'
         }}
       >
         {memoizedBarBoxes}

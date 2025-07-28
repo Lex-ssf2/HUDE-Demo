@@ -6,3 +6,4 @@ export const LINE_DIFF = 16
 export const START_PENTAGRAM_COUNT = 3
 export const START_BAR_COUNT = 3
 export const MAX_NOTE_SIZE = (CIRCLE_RADIUS + 20) * 4
+export const ZOOM_LEVEL = 2

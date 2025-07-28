@@ -70,28 +70,6 @@ export function SvgMovableBox({
   } ${svgViewboxWidth} ${
     svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
-  const [currentSvgWidth, setCurrentSvgWidth] = useState(0)
-
-  /*
-   * Resize with the actual navigator size WIP
-   * probably going to be removed to use a better approach
-   **/
-  useEffect(() => {
-    const measureWidth = () => {
-      if (svgRef.current) {
-        const newWidth = svgRef.current.getBoundingClientRect().width
-        if (newWidth !== currentSvgWidth) {
-          setCurrentSvgWidth(newWidth)
-        }
-      }
-    }
-    measureWidth()
-    window.addEventListener('resize', measureWidth)
-    return () => {
-      window.removeEventListener('resize', measureWidth)
-    }
-  }, [currentSvgWidth])
-
   const [pentagramLines, setPentagramLines] = useState<JSX.Element[]>([])
 
   useEffect(() => {
@@ -121,6 +99,7 @@ export function SvgMovableBox({
     const yInSvgCoords =
       (clientY / svgRect.height) *
       (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
+    const actualClientX = (clientX / svgRect.width) * svgViewboxWidth
     const clickedCy = yInSvgCoords + actualYOffset
     const actualNoteYPos =
       Math.round(clickedCy / (LINE_DIFF / 2)) * (LINE_DIFF / 2)
@@ -159,7 +138,7 @@ export function SvgMovableBox({
       scaleNum: actualScaleNum
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
-      if (clientX < clickedCirclesData[index].cx && !isInMiddle) {
+      if (actualClientX < clickedCirclesData[index].cx && !isInMiddle) {
         lastSize = currentNoteSize
         newCircleData.cx = actualSize
         clickedCirclesData.splice(index, 0, newCircleData)
