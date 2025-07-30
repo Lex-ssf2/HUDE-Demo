@@ -1,16 +1,14 @@
 import { useState, useEffect, useMemo } from 'preact/hooks'
 import { VerticalPentagram } from './components/VerticalPentagram'
 import { MainScoreContext } from './context/DisplayContext'
-import {
-  type SelectedNote,
-  type VerticalBarData,
-  type BarData
-} from './interface/types'
+import { type CircleData, type SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
 import {
+  ALL_CLAVES,
   CIRCLE_RADIUS,
   LINE_DIFF,
   MAX_NOTE_SIZE,
+  MINIMUM_START_DISTANCE,
   START_BAR_COUNT,
   START_PENTAGRAM_COUNT
 } from './enums/constants'
@@ -20,6 +18,7 @@ import {
   NOTE_DURATION,
   SEMITONE_DIFF
 } from './enums/Notes'
+import type { BarData, VerticalBarData } from './interface/BarInterface'
 
 /**
  *
@@ -31,7 +30,6 @@ export function MainScore() {
   const [maxPentagram, setMaxPentagram] = useState<number>(
     START_PENTAGRAM_COUNT
   )
-  const expectedWidth = 1951
   const [initialScale, setInitialScale] = useState(0)
   const [currentScale, setCurrentScale] = useState(1)
   const [maxBar, setMaxBar] = useState<number>(START_BAR_COUNT)
@@ -68,7 +66,11 @@ export function MainScore() {
           pentagramIndex < maxPentagram;
           pentagramIndex++
         ) {
-          barContent.push({ currentNotes: [] })
+          barContent.push({
+            currentNotes: [],
+            claveIndex: 0,
+            claveVisible: false
+          })
         }
         initialData.push({ allBar: barContent })
       }
@@ -188,28 +190,34 @@ export function MainScore() {
           default:
             return
         }
-        const GSecondLine = 5
-        const difference = ALL_POSIBLE_NOTES.length - GSecondLine
-        const startNumScale = 5
+        const startLine =
+          ALL_CLAVES[
+            tmpAllBars[selectedNote.barIndex].allBar[
+              selectedNote.currentPentagram
+            ].claveIndex
+          ].startLine
+        const difference = ALL_POSIBLE_NOTES.length - startLine
+        const startNumScale =
+          ALL_CLAVES[
+            tmpAllBars[selectedNote.barIndex].allBar[
+              selectedNote.currentPentagram
+            ].claveIndex
+          ].startNumScale
         const noteIndex =
           (ALL_POSIBLE_NOTES.length +
-            GSecondLine -
+            startLine -
             (newCy % ALL_POSIBLE_NOTES.length)) %
           ALL_POSIBLE_NOTES.length
         const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
         const scaleNum =
-          startNumScale + Math.floor((GSecondLine - difference - newCy / 8) / 7)
-        //console.log(scaleNum)
+          startNumScale + Math.floor((startLine - difference - newCy / 8) / 7)
         const midiValue =
           MIDI_BASE_VALUE[noteIndex] + (scaleNum - 1) * SEMITONE_DIFF
-        const updatedNote = {
+        const updatedNote: CircleData = {
           ...actualNote,
-          cy: newCy,
-          midiValue,
-          scaleNum,
-          noteName: actualNoteName
+          cy: newCy
         }
-        //console.log(updatedNote)
+        console.log(actualNoteName, midiValue, scaleNum)
         updatedNotes[selectedNote.noteIndex] = updatedNote
         tmpAllBars[selectedNote.barIndex].allBar[
           selectedNote.currentPentagram
@@ -221,7 +229,11 @@ export function MainScore() {
     if (mode === DISPLAY_MODE.REMOVE_NOTE) {
       updatedNotes.splice(selectedNote.noteIndex, 1)
       let lastSize = 1
-      let tmpSize = CIRCLE_RADIUS + 10
+      let tmpSize =
+        tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
+          .claveVisible || selectedNote.barIndex === 0
+          ? MINIMUM_START_DISTANCE
+          : CIRCLE_RADIUS * 1.5
       for (let i = 0; i < updatedNotes.length; i++) {
         lastSize = updatedNotes[i].noteDuration
         updatedNotes[i].cx = tmpSize
@@ -258,7 +270,7 @@ export function MainScore() {
       <VerticalPentagram key={id} indexBar={i} />
     ))
   }, [barUniqueIds])
-  //console.log(allPentagramsData)
+  console.log(allPentagramsData)
   const sendCurrentData = async () => {
     console.log(JSON.stringify(allPentagramsData))
     try {
@@ -361,6 +373,9 @@ export function MainScore() {
           onClick={() => setCurrentScale((prev) => Math.max(prev - 0.1, 0.5))}
         >
           Zoom Out
+        </button>
+        <button onClick={() => setMode(DISPLAY_MODE.TOGGLE_CLAVE)}>
+          Toggle Clave
         </button>
       </div>
       <section

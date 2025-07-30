@@ -21,6 +21,8 @@ export interface VerticalBarData {
 
 export interface BarData {
   currentNotes: CircleData[]
+  claveIndex: number
+  claveVisible: boolean
 }
 
 export interface SelectedNote {

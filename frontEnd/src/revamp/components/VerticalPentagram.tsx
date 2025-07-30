@@ -13,17 +13,17 @@ import {
 } from '../context/DisplayContext'
 import {
   type VerticalPentagramProps,
-  type CircleData,
-  type VerticalBarData
+  type CircleData
 } from '../interface/types'
 import {
+  ALL_CLAVES,
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   NUMBER_OF_PENTAGRAM_LINES
 } from '../enums/constants'
 import { updateWidth } from '../utils/utils'
 import { DISPLAY_MODE } from '../enums/mode'
-import type { BarData } from '../interface/BarInterface'
+import type { BarData, VerticalBarData } from '../interface/BarInterface'
 
 /**
  *
@@ -137,15 +137,52 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       pentagramIndex < maxPentagram;
       pentagramIndex++
     ) {
-      barContent.push({ currentNotes: [] })
+      barContent.push({
+        currentNotes: [],
+        claveIndex: 0,
+        claveVisible: false
+      })
     }
-    const initialData: VerticalBarData = { allBar: barContent }
-    if (mode == DISPLAY_MODE.ADD_BAR) {
+    const initialData: VerticalBarData = {
+      allBar: barContent
+    }
+    if (mode === DISPLAY_MODE.ADD_BAR) {
       currentId = clientX <= svgViewboxWidth / 2 ? indexBar : indexBar + 1
       setMaxBar((actualMax) => actualMax + 1)
+      if (currentId != 0) {
+        for (
+          let index = 0;
+          index < copyAllPentagramsData[currentId - 1].allBar.length;
+          index++
+        ) {
+          ALL_CLAVES[initialData.allBar[index].claveIndex].startLine =
+            ALL_CLAVES[
+              copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
+            ].startLine
+          ALL_CLAVES[initialData.allBar[index].claveIndex].startNumScale =
+            ALL_CLAVES[
+              copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
+            ].startNumScale
+        }
+      } else {
+        for (
+          let index = 0;
+          index < copyAllPentagramsData[currentId + 1].allBar.length;
+          index++
+        ) {
+          ALL_CLAVES[initialData.allBar[index].claveIndex].startLine =
+            ALL_CLAVES[
+              copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
+            ].startLine
+          ALL_CLAVES[initialData.allBar[index].claveIndex].startNumScale =
+            ALL_CLAVES[
+              copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
+            ].startNumScale
+        }
+      }
       copyAllPentagramsData.splice(currentId, 0, initialData)
       setAllPentagramsData(copyAllPentagramsData)
-    } else if (mode == DISPLAY_MODE.REMOVE_BAR) {
+    } else if (mode === DISPLAY_MODE.REMOVE_BAR) {
       setMaxBar((actualMax) => {
         if (actualMax <= 1)
           copyAllPentagramsData.splice(currentId, 1, initialData)
@@ -154,6 +191,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       })
       setAllPentagramsData(copyAllPentagramsData)
     }
+
     return
   }
   return (

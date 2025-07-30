@@ -4,6 +4,7 @@ import {
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   MAX_NOTE_SIZE,
+  MINIMUM_START_DISTANCE,
   NUMBER_OF_PENTAGRAM_LINES
 } from '../enums/constants'
 import { type UpdateWidthProps } from '../interface/types'
@@ -23,12 +24,14 @@ export function updateWidth({
     const allTMPNotes = allPentagramsData[indexBar]?.allBar[i]?.currentNotes
     if (!allTMPNotes) continue
     let lastSize = 1
-    let tmpSize = 0
+    let tmpSize =
+      allPentagramsData[indexBar].allBar[i].claveVisible || indexBar === 0
+        ? MINIMUM_START_DISTANCE
+        : CIRCLE_RADIUS * 1.5
     for (let j = 0; j < allTMPNotes.length; j++) {
       lastSize = allTMPNotes[j].noteDuration
       tmpSize += MAX_NOTE_SIZE / lastSize
     }
-    tmpSize += MAX_NOTE_SIZE / lastSize
     fullSize = Math.max(fullSize, tmpSize)
   }
   return fullSize

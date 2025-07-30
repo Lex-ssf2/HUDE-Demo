@@ -1,20 +1,14 @@
+import type { VerticalBarData } from './BarInterface'
+
 export interface CircleData {
   id: number
   cy: number
   cx: number
-  noteName: string
-  midiValue: number
+  /*noteName: string
+  midiValue: number*/
   noteDuration: number
-  scaleNum: number
+  //scaleNum: number
   status: string
-}
-
-export interface BarData {
-  currentNotes: CircleData[]
-}
-
-export interface VerticalBarData {
-  allBar: BarData[]
 }
 
 export interface SelectedNote {

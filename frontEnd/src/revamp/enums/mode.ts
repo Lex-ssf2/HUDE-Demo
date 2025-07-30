@@ -4,5 +4,6 @@ export const DISPLAY_MODE = {
   ADD_NOTE: 3,
   REMOVE_BAR: 4,
   REMOVE_NOTE: 5,
+  TOGGLE_CLAVE: 6,
   NONE: -1
 }

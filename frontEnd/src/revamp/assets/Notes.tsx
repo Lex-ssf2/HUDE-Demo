@@ -1,4 +1,4 @@
-interface NoteProps {
+export interface NoteProps {
   x?: number
   y?: number
   onClick?: (event: MouseEvent) => void

@@ -13,7 +13,13 @@ import {
   MainScoreContext
 } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
-import { LINE_DIFF, MAX_NOTE_SIZE } from '../enums/constants'
+import {
+  ALL_CLAVES,
+  CIRCLE_RADIUS,
+  LINE_DIFF,
+  MAX_NOTE_SIZE,
+  MINIMUM_START_DISTANCE
+} from '../enums/constants'
 import {
   ALL_POSIBLE_NOTES,
   MIDI_BASE_VALUE,
@@ -21,6 +27,7 @@ import {
   SEMITONE_DIFF
 } from '../enums/Notes'
 import { Blanca, Negra, Redonda } from '../assets/Notes'
+import { ClaveDo, ClaveF, ClaveSol } from '../assets/Claves'
 
 /**
  *
@@ -52,25 +59,27 @@ export function SvgMovableBox({
   } = mainScoreContext
   if (
     !maxHeight[indexPentagram] ||
-    maxHeight[indexPentagram][0] == undefined ||
-    maxHeight[indexPentagram][1] == undefined
+    maxHeight[indexPentagram][0] === undefined ||
+    maxHeight[indexPentagram][1] === undefined
   )
     return
 
   const circleRadius: number = 20
-  const offsetYStart = 0
+  const offsetYStart = 25
 
   const svgRef = useRef<SVGSVGElement | null>(null)
-
   let nextCircleId = useRef(0)
   const actualYOffset = maxHeight[indexPentagram][0]
   const actualYOffsetBottom = maxHeight[indexPentagram][1]
   const viewBoxString: string = `0 ${
     actualYOffset - offsetYStart
   } ${svgViewboxWidth} ${
-    svgViewboxHeight - actualYOffset + actualYOffsetBottom
+    offsetYStart + svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
   const [pentagramLines, setPentagramLines] = useState<JSX.Element[]>([])
+  const [toggleClave, setToggleClave] = useState(
+    allPentagramsData[indexBar].allBar[indexPentagram].claveVisible
+  )
 
   useEffect(() => {
     const pentagram: JSX.Element[] = []
@@ -92,50 +101,73 @@ export function SvgMovableBox({
 
   //Clicking without touching any note :P inserts note
   const handleSvgClick = (event: MouseEvent) => {
-    if (!svgRef.current || mode != DISPLAY_MODE.ADD_NOTE) return
+    if (!svgRef.current) return
     const svgRect = svgRef.current.getBoundingClientRect()
-    const clientY = event.clientY - svgRect.top - offsetYStart
-    const clientX = event.clientX - svgRect.left
-    const yInSvgCoords =
-      (clientY / svgRect.height) *
-      (svgViewboxHeight - actualYOffset + actualYOffsetBottom)
-    const actualClientX = (clientX / svgRect.width) * svgViewboxWidth
-    const clickedCy = yInSvgCoords + actualYOffset
-    const actualNoteYPos =
-      Math.round(clickedCy / (LINE_DIFF / 2)) * (LINE_DIFF / 2)
     const copyPentagram = [...allPentagramsData]
     const clickedCirclesData =
       copyPentagram[indexBar].allBar[indexPentagram].currentNotes
-    let actualSize = circleRadius + 10
+    if (mode === DISPLAY_MODE.TOGGLE_CLAVE) {
+      setToggleClave(
+        !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
+      )
+      copyPentagram[indexBar].allBar[indexPentagram].claveVisible =
+        !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
+      let actualSize =
+        copyPentagram[indexBar].allBar[indexPentagram].claveVisible ||
+        indexBar === 0
+          ? MINIMUM_START_DISTANCE
+          : CIRCLE_RADIUS * 1.5
+      let lastSize = 1
+      for (let index = 0; index < clickedCirclesData.length; index++) {
+        clickedCirclesData[index].cx = actualSize
+        lastSize = clickedCirclesData[index].noteDuration
+        actualSize += MAX_NOTE_SIZE / lastSize
+      }
+      setAllPentagramsData(copyPentagram)
+      return
+    }
+    if (mode != DISPLAY_MODE.ADD_NOTE) return
+    const clientY = event.clientY - svgRect.top
+    const clientX = event.clientX - svgRect.left
+    const yInSvgCoords =
+      (clientY / svgRect.height) *
+      (svgViewboxHeight - actualYOffset + actualYOffsetBottom + offsetYStart)
+    const actualClientX = (clientX / svgRect.width) * svgViewboxWidth
+    const clickedCy = yInSvgCoords + actualYOffset - offsetYStart
+    const actualNoteYPos =
+      Math.round(clickedCy / (LINE_DIFF / 2)) * (LINE_DIFF / 2)
+    let actualSize =
+      copyPentagram[indexBar].allBar[indexPentagram].claveVisible ||
+      indexBar === 0
+        ? MINIMUM_START_DISTANCE
+        : CIRCLE_RADIUS * 1.5
     let lastSize = 1
     let isInMiddle = false
-    /*
-        IMPORTANTE AÑADIR INFO DE LA CLAVE QUE TIENE LA BARRA
-    */
-    //The 5 is a number that changes to represent the first note of X key
-    const GSecondLine = 5
-    const difference = ALL_POSIBLE_NOTES.length - GSecondLine
-    const startNumScale = 5
+    const startLine =
+      ALL_CLAVES[copyPentagram[indexBar].allBar[indexPentagram].claveIndex]
+        .startLine
+    const difference = ALL_POSIBLE_NOTES.length - startLine
+    const startNumScale =
+      ALL_CLAVES[copyPentagram[indexBar].allBar[indexPentagram].claveIndex]
+        .startNumScale
     const noteIndex =
       (ALL_POSIBLE_NOTES.length +
-        GSecondLine -
+        startLine -
         (actualNoteYPos % ALL_POSIBLE_NOTES.length)) %
       ALL_POSIBLE_NOTES.length
     const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
     const actualScaleNum =
       startNumScale +
-      Math.floor((GSecondLine - difference - actualNoteYPos / 8) / 7)
+      Math.floor((startLine - difference - actualNoteYPos / 8) / 7)
     const midiValue =
       MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
-    const newCircleData = {
+    console.log(actualNoteName, midiValue, actualScaleNum)
+    const newCircleData: CircleData = {
       id: nextCircleId.current++,
       cy: actualNoteYPos,
       cx: MAX_NOTE_SIZE / currentNoteSize,
-      noteName: `${actualNoteName}`,
-      midiValue: midiValue,
       status: 'ok',
-      noteDuration: currentNoteSize,
-      scaleNum: actualScaleNum
+      noteDuration: currentNoteSize
     }
     for (let index = 0; index < clickedCirclesData.length; index++) {
       if (actualClientX < clickedCirclesData[index].cx && !isInMiddle) {
@@ -262,7 +294,7 @@ export function SvgMovableBox({
               offsetYStart
             }
             fill={
-              circleData.status == 'ok'
+              circleData.status === 'ok'
                 ? 'rgba(38, 0, 255, 0)'
                 : 'rgba(255, 0, 0, 0.18)'
             }
@@ -287,8 +319,17 @@ export function SvgMovableBox({
     svgViewboxWidth,
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes,
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes.length,
-    svgViewboxHeight
+    svgViewboxHeight,
+    toggleClave
   ])
+  const changeClave = (e: MouseEvent) => {
+    e.stopPropagation()
+    const copyPentagram = [...allPentagramsData]
+    copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
+    copyPentagram[indexBar].allBar[indexPentagram].claveIndex %=
+      ALL_CLAVES.length
+    setAllPentagramsData(copyPentagram)
+  }
   return (
     <svg
       ref={svgRef}
@@ -300,13 +341,32 @@ export function SvgMovableBox({
         overflow: 'visible',
         cursor: 'crosshair',
         width: `${svgViewboxWidth}px`,
-        height: `${svgViewboxHeight - actualYOffset + actualYOffsetBottom}px`
+        height: `${
+          svgViewboxHeight - actualYOffset + actualYOffsetBottom + offsetYStart
+        }px`
       }}
     >
       {pentagramLines}
       {renderedCircles}
+      {((indexBar === 0 &&
+        allPentagramsData[indexBar].allBar[indexPentagram].claveIndex !==
+          undefined) ||
+        allPentagramsData[indexBar].allBar[indexPentagram].claveVisible) &&
+        currentClave(
+          allPentagramsData[indexBar].allBar[indexPentagram].claveIndex,
+          changeClave
+        )}
     </svg>
   )
+}
+
+const currentClave = (indexClave: number, onClick: (e: MouseEvent) => void) => {
+  const arrayOfElements = [
+    <ClaveSol x={-25} onClick={onClick} />,
+    <ClaveF x={-25} y={6} onClick={onClick} />,
+    <ClaveDo x={-25} y={12.5} onClick={onClick} />
+  ]
+  return arrayOfElements[indexClave % ALL_CLAVES.length]
 }
 
 const renderFigure = (
