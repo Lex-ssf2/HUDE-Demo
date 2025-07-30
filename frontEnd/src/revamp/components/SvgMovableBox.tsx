@@ -323,6 +323,7 @@ export function SvgMovableBox({
     toggleClave
   ])
   const changeClave = (e: MouseEvent) => {
+    if (mode === DISPLAY_MODE.TOGGLE_CLAVE) return
     e.stopPropagation()
     const copyPentagram = [...allPentagramsData]
     copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
