@@ -17,6 +17,12 @@ export interface SelectedNote {
   currentPentagram: number
 }
 
+export interface ActualNote {
+  name: string
+  scale: number
+  midiValue: number
+}
+
 export interface SvgMovableBoxProps {
   onCircleAdded: (noteList: CircleData[]) => void
   onCircleClicked: (barId: number, pentagramId: number, noteId: number) => void

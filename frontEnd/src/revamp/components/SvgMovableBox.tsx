@@ -329,6 +329,11 @@ export function SvgMovableBox({
     copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
     copyPentagram[indexBar].allBar[indexPentagram].claveIndex %=
       ALL_CLAVES.length
+    for (let index = indexBar + 1; index < copyPentagram.length; index++) {
+      if (copyPentagram[index].allBar[indexPentagram].claveVisible) break
+      copyPentagram[index].allBar[indexPentagram].claveIndex =
+        copyPentagram[Math.max(0, index - 1)].allBar[indexPentagram].claveIndex
+    }
     setAllPentagramsData(copyPentagram)
   }
   return (

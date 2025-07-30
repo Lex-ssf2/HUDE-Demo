@@ -149,20 +149,14 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     if (mode === DISPLAY_MODE.ADD_BAR) {
       currentId = clientX <= svgViewboxWidth / 2 ? indexBar : indexBar + 1
       setMaxBar((actualMax) => actualMax + 1)
-      if (currentId != 0) {
+      if (currentId !== 0) {
         for (
           let index = 0;
           index < copyAllPentagramsData[currentId - 1].allBar.length;
           index++
         ) {
-          ALL_CLAVES[initialData.allBar[index].claveIndex].startLine =
-            ALL_CLAVES[
-              copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
-            ].startLine
-          ALL_CLAVES[initialData.allBar[index].claveIndex].startNumScale =
-            ALL_CLAVES[
-              copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
-            ].startNumScale
+          initialData.allBar[index].claveIndex =
+            copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
         }
       } else {
         for (
@@ -170,14 +164,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
           index < copyAllPentagramsData[currentId + 1].allBar.length;
           index++
         ) {
-          ALL_CLAVES[initialData.allBar[index].claveIndex].startLine =
-            ALL_CLAVES[
-              copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
-            ].startLine
-          ALL_CLAVES[initialData.allBar[index].claveIndex].startNumScale =
-            ALL_CLAVES[
-              copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
-            ].startNumScale
+          initialData.allBar[index].claveIndex =
+            copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
         }
       }
       copyAllPentagramsData.splice(currentId, 0, initialData)

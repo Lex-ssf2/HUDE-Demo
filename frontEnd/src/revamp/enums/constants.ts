@@ -17,7 +17,7 @@ export const ALL_CLAVES = [
   },
   {
     startLine: 0,
-    startNumScale: 5,
+    startNumScale: 4,
     name: 'FFourthLine'
   },
   {

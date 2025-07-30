@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'preact/hooks'
 import { VerticalPentagram } from './components/VerticalPentagram'
 import { MainScoreContext } from './context/DisplayContext'
-import { type CircleData, type SelectedNote } from './interface/types'
+import type { ActualNote, CircleData, SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
 import {
   ALL_CLAVES,
@@ -40,6 +40,7 @@ export function MainScore() {
     noteIndex: -1,
     currentPentagram: -1
   })
+  const [actualNote, setActualNote] = useState<ActualNote | null>(null)
   //This is to make all Bar the same size in X Pentagram
   const [maxHeight, setMaxHeight] = useState<number[][]>(() =>
     Array(maxPentagram).fill([0, 0])
@@ -270,7 +271,7 @@ export function MainScore() {
       <VerticalPentagram key={id} indexBar={i} />
     ))
   }, [barUniqueIds])
-  console.log(allPentagramsData)
+  //console.log(allPentagramsData)
   const sendCurrentData = async () => {
     console.log(JSON.stringify(allPentagramsData))
     try {
@@ -312,6 +313,49 @@ export function MainScore() {
       window.removeEventListener('resize', measureWidth)
     }
   }, [])
+  useEffect(() => {
+    if (
+      allPentagramsData[selectedNote.barIndex] === undefined ||
+      allPentagramsData[selectedNote.barIndex].allBar[
+        selectedNote.currentPentagram
+      ] === undefined
+    )
+      return
+    const currentNote: CircleData =
+      allPentagramsData[selectedNote.barIndex].allBar[
+        selectedNote.currentPentagram
+      ].currentNotes[selectedNote.noteIndex]
+    if (currentNote === undefined) return
+    const actualNote: ActualNote = { name: 'Z', midiValue: -1, scale: 5 }
+    const startLine =
+      ALL_CLAVES[
+        allPentagramsData[selectedNote.barIndex].allBar[
+          selectedNote.currentPentagram
+        ].claveIndex
+      ].startLine
+    const difference = ALL_POSIBLE_NOTES.length - ALL_POSIBLE_NOTES.indexOf('F')
+    const startNumScale =
+      ALL_CLAVES[
+        allPentagramsData[selectedNote.barIndex].allBar[
+          selectedNote.currentPentagram
+        ].claveIndex
+      ].startNumScale
+    const noteIndex =
+      (ALL_POSIBLE_NOTES.length +
+        startLine -
+        (currentNote.cy % ALL_POSIBLE_NOTES.length)) %
+      ALL_POSIBLE_NOTES.length
+    const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
+    const actualScaleNum =
+      startNumScale +
+      Math.floor((startLine - difference - currentNote.cy / 8) / 7)
+    const midiValue =
+      MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
+    actualNote.name = actualNoteName
+    actualNote.scale = actualScaleNum
+    actualNote.midiValue = midiValue
+    setActualNote(actualNote)
+  }, [selectedNote, allPentagramsData])
   return (
     <MainScoreContext.Provider
       value={{
@@ -377,6 +421,11 @@ export function MainScore() {
         <button onClick={() => setMode(DISPLAY_MODE.TOGGLE_CLAVE)}>
           Toggle Clave
         </button>
+        {' Selected Note: '}
+        {actualNote?.name}
+        {actualNote?.scale}
+        {' = Midi Value: '}
+        {actualNote?.midiValue}
       </div>
       <section
         style={{
