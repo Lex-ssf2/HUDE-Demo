@@ -112,6 +112,18 @@ export function SvgMovableBox({
       )
       copyPentagram[indexBar].allBar[indexPentagram].claveVisible =
         !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
+      if (!copyPentagram[indexBar].allBar[indexPentagram].claveVisible) {
+        const actualIndex =
+          copyPentagram[Math.max(indexBar - 1, 0)].allBar[indexPentagram]
+            .claveIndex
+        copyPentagram[indexBar].allBar[indexPentagram].claveIndex = actualIndex
+
+        //Update all pentagram after this one
+        for (let index = indexBar + 1; index < copyPentagram.length; index++) {
+          if (copyPentagram[index].allBar[indexPentagram].claveVisible) break
+          copyPentagram[index].allBar[indexPentagram].claveIndex = actualIndex
+        }
+      }
       let actualSize =
         copyPentagram[indexBar].allBar[indexPentagram].claveVisible ||
         indexBar === 0
@@ -124,6 +136,7 @@ export function SvgMovableBox({
         actualSize += MAX_NOTE_SIZE / lastSize
       }
       setAllPentagramsData(copyPentagram)
+      changeClave(null)
       return
     }
     if (mode != DISPLAY_MODE.ADD_NOTE) return
@@ -322,13 +335,15 @@ export function SvgMovableBox({
     svgViewboxHeight,
     toggleClave
   ])
-  const changeClave = (e: MouseEvent) => {
+  const changeClave = (e: MouseEvent | null) => {
     if (mode === DISPLAY_MODE.TOGGLE_CLAVE) return
-    e.stopPropagation()
     const copyPentagram = [...allPentagramsData]
-    copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
-    copyPentagram[indexBar].allBar[indexPentagram].claveIndex %=
-      ALL_CLAVES.length
+    if (e) {
+      e.stopPropagation()
+      copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
+      copyPentagram[indexBar].allBar[indexPentagram].claveIndex %=
+        ALL_CLAVES.length
+    }
     for (let index = indexBar + 1; index < copyPentagram.length; index++) {
       if (copyPentagram[index].allBar[indexPentagram].claveVisible) break
       copyPentagram[index].allBar[indexPentagram].claveIndex =
