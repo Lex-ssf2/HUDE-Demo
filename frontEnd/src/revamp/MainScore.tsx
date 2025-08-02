@@ -88,7 +88,13 @@ export function MainScore() {
           const newBarContent = Array.from(
             { length: maxPentagram },
             (_, pentagramIndex) => {
-              return prevBar?.allBar[pentagramIndex] || { currentNotes: [] }
+              return (
+                prevBar?.allBar[pentagramIndex] || {
+                  currentNotes: [],
+                  claveIndex: 0,
+                  claveVisible: false
+                }
+              )
             }
           )
           return { allBar: newBarContent }
