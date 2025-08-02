@@ -159,13 +159,13 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
             copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
         }
       } else {
+        //Necesito una funcion que actualice las posiciones XD
         for (
           let index = 0;
-          index < copyAllPentagramsData[currentId + 1].allBar.length;
+          index < copyAllPentagramsData[indexBar].allBar.length;
           index++
         ) {
-          initialData.allBar[index].claveIndex =
-            copyAllPentagramsData[currentId + 1].allBar[index].claveIndex
+          copyAllPentagramsData[indexBar].allBar[index].claveVisible = false
         }
       }
       copyAllPentagramsData.splice(currentId, 0, initialData)
