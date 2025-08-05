@@ -1,13 +1,21 @@
 // src/utils.ts
 
+import type { RefObject } from 'preact'
 import {
+  ALL_CLAVES,
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   MAX_NOTE_SIZE,
   MINIMUM_START_DISTANCE,
   NUMBER_OF_PENTAGRAM_LINES
 } from '../enums/constants'
-import { type UpdateWidthProps } from '../interface/types'
+import {
+  ALL_POSIBLE_NOTES,
+  MIDI_BASE_VALUE,
+  SEMITONE_DIFF
+} from '../enums/Notes'
+import type { BarData } from '../interface/BarInterface'
+import { type CircleData, type UpdateWidthProps } from '../interface/types'
 
 export function updateWidth({
   maxPentagram,
@@ -35,4 +43,101 @@ export function updateWidth({
     fullSize = Math.max(fullSize, tmpSize)
   }
   return fullSize
+}
+
+export function getNoteInfo({
+  currentBar,
+  currentNote
+}: {
+  currentBar: BarData
+  currentNote: CircleData
+}): [string, number, number] {
+  const startLine = ALL_CLAVES[currentBar.claveIndex].startLine
+  const difference = ALL_POSIBLE_NOTES.length - ALL_POSIBLE_NOTES.indexOf('F')
+  const startNumScale = ALL_CLAVES[currentBar.claveIndex].startNumScale
+  const noteIndex =
+    (ALL_POSIBLE_NOTES.length +
+      startLine -
+      (currentNote.cy % ALL_POSIBLE_NOTES.length)) %
+    ALL_POSIBLE_NOTES.length
+  const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
+  const actualScaleNum =
+    startNumScale +
+    Math.floor((startLine - difference - currentNote.cy / 8) / 7)
+  const midiValue =
+    MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
+  return [actualNoteName, actualScaleNum, midiValue]
+}
+
+export function updatePosition({
+  currentBar,
+  indexBar
+}: {
+  currentBar: BarData
+  indexBar: number
+}) {
+  console.log(currentBar, indexBar)
+  let actualSize =
+    currentBar.claveVisible || indexBar === 0
+      ? MINIMUM_START_DISTANCE
+      : CIRCLE_RADIUS * 1.5
+  let lastSize = 1
+  const clickedCirclesData = currentBar.currentNotes
+  for (let index = 0; index < clickedCirclesData.length; index++) {
+    clickedCirclesData[index].cx = actualSize
+    lastSize = clickedCirclesData[index].noteDuration
+    actualSize += MAX_NOTE_SIZE / lastSize
+  }
+  return [currentBar]
+}
+
+export function addNoteAndUpdate({
+  currentBar,
+  indexBar,
+  actualNoteYPos,
+  actualClientX,
+  nextCircleId,
+  currentNoteSize
+}: {
+  currentBar: BarData
+  indexBar: number
+  actualNoteYPos: number
+  actualClientX: number
+  currentNoteSize: number
+  nextCircleId: RefObject<number>
+}) {
+  if (nextCircleId === null || nextCircleId.current === null) return []
+  const clickedCirclesData = currentBar.currentNotes
+  let actualSize =
+    currentBar.claveVisible || indexBar === 0
+      ? MINIMUM_START_DISTANCE
+      : CIRCLE_RADIUS * 1.5
+  let lastSize = 1
+  let isInMiddle = false
+  const newCircleData: CircleData = {
+    id: nextCircleId.current++,
+    cy: actualNoteYPos,
+    cx: MAX_NOTE_SIZE / currentNoteSize,
+    status: 'ok',
+    noteDuration: currentNoteSize
+  }
+  for (let index = 0; index < clickedCirclesData.length; index++) {
+    if (actualClientX < clickedCirclesData[index].cx && !isInMiddle) {
+      lastSize = currentNoteSize
+      newCircleData.cx = actualSize
+      clickedCirclesData.splice(index, 0, newCircleData)
+      currentBar.currentNotes = clickedCirclesData
+      isInMiddle = true
+      actualSize += MAX_NOTE_SIZE / lastSize
+      index++
+    }
+    clickedCirclesData[index].cx = actualSize
+    lastSize = clickedCirclesData[index].noteDuration
+    actualSize += MAX_NOTE_SIZE / lastSize
+  }
+  if (!isInMiddle) {
+    newCircleData.cx = actualSize
+    currentBar.currentNotes.push(newCircleData)
+  }
+  return [currentBar]
 }

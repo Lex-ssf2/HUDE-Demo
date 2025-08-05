@@ -16,7 +16,6 @@ import {
   type CircleData
 } from '../interface/types'
 import {
-  ALL_CLAVES,
   CIRCLE_RADIUS,
   IDEAL_SPACING,
   NUMBER_OF_PENTAGRAM_LINES
@@ -44,7 +43,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     allPentagramsData,
     setAllPentagramsData,
     setSelectedNote,
-    setMaxHeightPerBar,
     setMaxBar,
     mode
   } = mainScore
@@ -149,6 +147,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     if (mode === DISPLAY_MODE.ADD_BAR) {
       currentId = clientX <= svgViewboxWidth / 2 ? indexBar : indexBar + 1
       setMaxBar((actualMax) => actualMax + 1)
+      //Necesito una funcion que actualice las posiciones XD
       if (currentId !== 0) {
         for (
           let index = 0;
@@ -159,7 +158,6 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
             copyAllPentagramsData[currentId - 1].allBar[index].claveIndex
         }
       } else {
-        //Necesito una funcion que actualice las posiciones XD
         for (
           let index = 0;
           index < copyAllPentagramsData[indexBar].allBar.length;

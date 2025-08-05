@@ -4,21 +4,13 @@ import { MainScoreContext } from './context/DisplayContext'
 import type { ActualNote, CircleData, SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
 import {
-  ALL_CLAVES,
-  CIRCLE_RADIUS,
   LINE_DIFF,
-  MAX_NOTE_SIZE,
-  MINIMUM_START_DISTANCE,
   START_BAR_COUNT,
   START_PENTAGRAM_COUNT
 } from './enums/constants'
-import {
-  ALL_POSIBLE_NOTES,
-  MIDI_BASE_VALUE,
-  NOTE_DURATION,
-  SEMITONE_DIFF
-} from './enums/Notes'
+import { NOTE_DURATION } from './enums/Notes'
 import type { BarData, VerticalBarData } from './interface/BarInterface'
+import { getNoteInfo, updatePosition } from './utils/utils'
 
 /**
  *
@@ -180,12 +172,8 @@ export function MainScore() {
       console.warn(`Note at position ${selectedNote.noteIndex} not found.`)
       return
     }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (mode === DISPLAY_MODE.SELECT_NOTE) {
-        /*
-        IMPORTANTE AÑADIR INFO DE LA CLAVE QUE TIENE LA BARRA
-        */
         let newCy = actualNote.cy
         switch (event.key) {
           case 'ArrowUp':
@@ -197,34 +185,10 @@ export function MainScore() {
           default:
             return
         }
-        const startLine =
-          ALL_CLAVES[
-            tmpAllBars[selectedNote.barIndex].allBar[
-              selectedNote.currentPentagram
-            ].claveIndex
-          ].startLine
-        const difference = ALL_POSIBLE_NOTES.length - startLine
-        const startNumScale =
-          ALL_CLAVES[
-            tmpAllBars[selectedNote.barIndex].allBar[
-              selectedNote.currentPentagram
-            ].claveIndex
-          ].startNumScale
-        const noteIndex =
-          (ALL_POSIBLE_NOTES.length +
-            startLine -
-            (newCy % ALL_POSIBLE_NOTES.length)) %
-          ALL_POSIBLE_NOTES.length
-        const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
-        const scaleNum =
-          startNumScale + Math.floor((startLine - difference - newCy / 8) / 7)
-        const midiValue =
-          MIDI_BASE_VALUE[noteIndex] + (scaleNum - 1) * SEMITONE_DIFF
         const updatedNote: CircleData = {
           ...actualNote,
           cy: newCy
         }
-        console.log(actualNoteName, midiValue, scaleNum)
         updatedNotes[selectedNote.noteIndex] = updatedNote
         tmpAllBars[selectedNote.barIndex].allBar[
           selectedNote.currentPentagram
@@ -235,20 +199,18 @@ export function MainScore() {
 
     if (mode === DISPLAY_MODE.REMOVE_NOTE) {
       updatedNotes.splice(selectedNote.noteIndex, 1)
-      let lastSize = 1
-      let tmpSize =
-        tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
-          .claveVisible || selectedNote.barIndex === 0
-          ? MINIMUM_START_DISTANCE
-          : CIRCLE_RADIUS * 1.5
-      for (let i = 0; i < updatedNotes.length; i++) {
-        lastSize = updatedNotes[i].noteDuration
-        updatedNotes[i].cx = tmpSize
-        tmpSize += MAX_NOTE_SIZE / lastSize
-      }
       tmpAllBars[selectedNote.barIndex].allBar[
         selectedNote.currentPentagram
       ].currentNotes = updatedNotes
+      ;[
+        tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
+      ] = updatePosition({
+        currentBar:
+          tmpAllBars[selectedNote.barIndex].allBar[
+            selectedNote.currentPentagram
+          ],
+        indexBar: selectedNote.barIndex
+      })
       setAllPentagramsData(tmpAllBars)
       setSelectedNote({ barIndex: -1, noteIndex: -1, currentPentagram: -1 })
     } else {
@@ -257,13 +219,7 @@ export function MainScore() {
         window.removeEventListener('keydown', handleKeyDown)
       }
     }
-  }, [
-    selectedNote,
-    allPentagramsData,
-    mode,
-    setAllPentagramsData,
-    setSelectedNote
-  ])
+  }, [selectedNote, allPentagramsData, mode])
 
   const barUniqueIds = useMemo(() => {
     const ids: string[] = []
@@ -333,33 +289,13 @@ export function MainScore() {
       ].currentNotes[selectedNote.noteIndex]
     if (currentNote === undefined) return
     const actualNote: ActualNote = { name: 'Z', midiValue: -1, scale: 5 }
-    const startLine =
-      ALL_CLAVES[
+    ;[actualNote.name, actualNote.scale, actualNote.midiValue] = getNoteInfo({
+      currentBar:
         allPentagramsData[selectedNote.barIndex].allBar[
           selectedNote.currentPentagram
-        ].claveIndex
-      ].startLine
-    const difference = ALL_POSIBLE_NOTES.length - ALL_POSIBLE_NOTES.indexOf('F')
-    const startNumScale =
-      ALL_CLAVES[
-        allPentagramsData[selectedNote.barIndex].allBar[
-          selectedNote.currentPentagram
-        ].claveIndex
-      ].startNumScale
-    const noteIndex =
-      (ALL_POSIBLE_NOTES.length +
-        startLine -
-        (currentNote.cy % ALL_POSIBLE_NOTES.length)) %
-      ALL_POSIBLE_NOTES.length
-    const actualNoteName = ALL_POSIBLE_NOTES[noteIndex]
-    const actualScaleNum =
-      startNumScale +
-      Math.floor((startLine - difference - currentNote.cy / 8) / 7)
-    const midiValue =
-      MIDI_BASE_VALUE[noteIndex] + (actualScaleNum - 1) * SEMITONE_DIFF
-    actualNote.name = actualNoteName
-    actualNote.scale = actualScaleNum
-    actualNote.midiValue = midiValue
+        ],
+      currentNote: currentNote
+    })
     setActualNote(actualNote)
   }, [selectedNote, allPentagramsData])
   return (
