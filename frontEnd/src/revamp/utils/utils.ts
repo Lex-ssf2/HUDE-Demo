@@ -76,7 +76,6 @@ export function updatePosition({
   currentBar: BarData
   indexBar: number
 }) {
-  console.log(currentBar, indexBar)
   let actualSize =
     currentBar.claveVisible || indexBar === 0
       ? MINIMUM_START_DISTANCE

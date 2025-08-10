@@ -235,18 +235,21 @@ export function MainScore() {
   }, [barUniqueIds])
   //console.log(allPentagramsData)
   const sendCurrentData = async () => {
-    console.log(JSON.stringify(allPentagramsData))
+    // make a const that its name its actualEntrace and replace all the status error with ok
+    // without replaceAll since it doesnt work in all browsers
+    const actualEntrace = JSON.stringify(allPentagramsData).replace(
+      /"status":"error"/g,
+      '"status":"ok"'
+    )
     try {
       const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(allPentagramsData).replace(
-          '"status":"error"',
-          '"status":"ok"'
-        )
+        body: actualEntrace
       })
+      console.log(actualEntrace, 'arreglado')
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
