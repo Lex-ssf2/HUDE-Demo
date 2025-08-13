@@ -1,23 +1,21 @@
-import { useState, useEffect, useMemo } from 'preact/hooks'
-import { VerticalPentagram } from './components/VerticalPentagram'
+import { useState } from 'preact/hooks'
 import { MainScoreContext } from './context/DisplayContext'
-import type { ActualNote, CircleData, SelectedNote } from './interface/types'
+import type { SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
-import {
-  LINE_DIFF,
-  START_BAR_COUNT,
-  START_PENTAGRAM_COUNT
-} from './enums/constants'
-import { NOTE_DURATION } from './enums/Notes'
-import type { BarData, VerticalBarData } from './interface/BarInterface'
-import { getNoteInfo, updatePosition } from './utils/utils'
+import { START_BAR_COUNT, START_PENTAGRAM_COUNT } from './enums/constants'
+import { MenuButtons } from './components/MenuButtons'
+import { usePentagramsData } from './hook/usePentagramsData'
+import { useSelectedNoteHandler } from './utils/useSelectedNoteHandler'
+import { useActualNote } from './hook/useActualNote'
+import { useBarUniqueIds } from './hook/useBarUniqueIds'
+import { useMemoizedBarBoxes } from './hook/useMemoizedBarBoxes'
+import { useInitialScale } from './utils/useInitialScale'
 
 /**
  *
  * MainScore is just the full music scoreSheet
  *
  */
-
 export function MainScore() {
   const [maxPentagram, setMaxPentagram] = useState<number>(
     START_PENTAGRAM_COUNT
@@ -32,346 +30,50 @@ export function MainScore() {
     noteIndex: -1,
     currentPentagram: -1
   })
-  const [actualNote, setActualNote] = useState<ActualNote | null>(null)
-  //This is to make all Bar the same size in X Pentagram
-  const [maxHeight, setMaxHeight] = useState<number[][]>(() =>
-    Array(maxPentagram).fill([0, 0])
+
+  const {
+    allPentagramsData,
+    setAllPentagramsData,
+    maxHeight,
+    setMaxHeightPerBar
+  } = usePentagramsData(maxPentagram, maxBar)
+
+  useSelectedNoteHandler(
+    selectedNote,
+    allPentagramsData,
+    setAllPentagramsData,
+    mode,
+    setSelectedNote
   )
-  //Comparing all Bar size to keep the maximum between pentagram
-  const [maxHeightPerBar, setMaxHeightPerBar] = useState<number[][][]>(() => {
-    const initialHeightPerBar: number[][][] = []
-    for (let p = 0; p < maxPentagram; p++) {
-      initialHeightPerBar[p] = []
-      for (let b = 0; b < maxBar; b++) {
-        initialHeightPerBar[p][b] = [0, 0]
-      }
-    }
-    return initialHeightPerBar
-  })
 
-  const [allPentagramsData, setAllPentagramsData] = useState<VerticalBarData[]>(
-    () => {
-      const initialData: VerticalBarData[] = []
-      for (let barIndex = 0; barIndex < maxBar; barIndex++) {
-        const barContent: BarData[] = []
-        for (
-          let pentagramIndex = 0;
-          pentagramIndex < maxPentagram;
-          pentagramIndex++
-        ) {
-          barContent.push({
-            currentNotes: [],
-            claveIndex: 0,
-            claveVisible: false
-          })
-        }
-        initialData.push({ allBar: barContent })
-      }
-      return initialData
-    }
-  )
-  //Initializes new bars and pentagram
-  useEffect(() => {
-    setAllPentagramsData((prevData) => {
-      const newAllPentagramsData = Array.from(
-        { length: maxBar },
-        (_, barIndex) => {
-          const prevBar = prevData[barIndex]
-          const newBarContent = Array.from(
-            { length: maxPentagram },
-            (_, pentagramIndex) => {
-              return (
-                prevBar?.allBar[pentagramIndex] || {
-                  currentNotes: [],
-                  claveIndex: 0,
-                  claveVisible: false
-                }
-              )
-            }
-          )
-          return { allBar: newBarContent }
-        }
-      )
-      return newAllPentagramsData
-    })
-    //Resets removed bars
-    setMaxHeight(() => Array(maxPentagram).fill([0, 0]))
-    setMaxHeightPerBar((oldMaxHeightBar) => {
-      const copyHeight = [...oldMaxHeightBar]
-      const newHeightPerBar: number[][][] = []
-      for (let p = 0; p < maxPentagram; p++) {
-        newHeightPerBar[p] = []
-        for (let b = 0; b < maxBar; b++) {
-          if (copyHeight[p] && copyHeight[p][b])
-            newHeightPerBar[p][b] = copyHeight[p][b]
-          else newHeightPerBar[p][b] = [0, 0]
-        }
-      }
-      return newHeightPerBar
-    })
-  }, [maxPentagram, maxBar])
+  const actualNote = useActualNote(selectedNote, allPentagramsData)
 
-  //Checks maxHeight per bar
-  useEffect(() => {
-    const newMaxHeight: number[][] = Array(maxPentagram)
-      .fill(null)
-      .map(() => [Infinity, -Infinity])
+  useInitialScale(setInitialScale)
 
-    for (let p = 0; p < maxPentagram; p++) {
-      for (let b = 0; b < maxBar; b++) {
-        const currentMinY = maxHeightPerBar[p]?.[b]?.[0]
-        const currentMaxY = maxHeightPerBar[p]?.[b]?.[1]
+  const barUniqueIds = useBarUniqueIds(maxBar)
+  const memoizedBarBoxes = useMemoizedBarBoxes(barUniqueIds)
 
-        if (
-          typeof currentMinY === 'number' &&
-          typeof currentMaxY === 'number' &&
-          !isNaN(currentMinY) &&
-          !isNaN(currentMaxY)
-        ) {
-          newMaxHeight[p][0] = Math.min(newMaxHeight[p][0], currentMinY)
-          newMaxHeight[p][1] = Math.max(newMaxHeight[p][1], currentMaxY)
-        }
-      }
-    }
-
-    if (JSON.stringify(newMaxHeight) !== JSON.stringify(maxHeight)) {
-      const finalizedMaxHeight = newMaxHeight.map((range) => [
-        range[0] === Infinity ? 0 : range[0],
-        range[1] === -Infinity ? 0 : range[1]
-      ])
-      setMaxHeight(finalizedMaxHeight)
-    }
-  }, [maxHeightPerBar, maxPentagram, maxBar, maxHeight])
-
-  //Handles selected note
-  useEffect(() => {
-    if (
-      selectedNote.barIndex === -1 ||
-      selectedNote.noteIndex === -1 ||
-      selectedNote.currentPentagram === -1
-    ) {
-      return
-    }
-
-    const tmpAllBars = [...allPentagramsData]
-    const currentPentagramNotes =
-      tmpAllBars[selectedNote.barIndex]?.allBar[selectedNote.currentPentagram]
-        ?.currentNotes
-
-    if (!currentPentagramNotes) {
-      console.warn(
-        `Notes for bar ${selectedNote.barIndex}, pentagram ${selectedNote.currentPentagram} not found.`
-      )
-      return
-    }
-
-    let updatedNotes = [...currentPentagramNotes]
-    const actualNote = updatedNotes[selectedNote.noteIndex]
-
-    if (!actualNote) {
-      console.warn(`Note at position ${selectedNote.noteIndex} not found.`)
-      return
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (mode === DISPLAY_MODE.SELECT_NOTE) {
-        let newCy = actualNote.cy
-        switch (event.key) {
-          case 'ArrowUp':
-            newCy -= LINE_DIFF / 2
-            break
-          case 'ArrowDown':
-            newCy += LINE_DIFF / 2
-            break
-          default:
-            return
-        }
-        const updatedNote: CircleData = {
-          ...actualNote,
-          cy: newCy
-        }
-        updatedNotes[selectedNote.noteIndex] = updatedNote
-        tmpAllBars[selectedNote.barIndex].allBar[
-          selectedNote.currentPentagram
-        ].currentNotes = updatedNotes
-        setAllPentagramsData(tmpAllBars)
-      }
-    }
-
-    if (mode === DISPLAY_MODE.REMOVE_NOTE) {
-      updatedNotes.splice(selectedNote.noteIndex, 1)
-      tmpAllBars[selectedNote.barIndex].allBar[
-        selectedNote.currentPentagram
-      ].currentNotes = updatedNotes
-      ;[
-        tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
-      ] = updatePosition({
-        currentBar:
-          tmpAllBars[selectedNote.barIndex].allBar[
-            selectedNote.currentPentagram
-          ],
-        indexBar: selectedNote.barIndex
-      })
-      setAllPentagramsData(tmpAllBars)
-      setSelectedNote({ barIndex: -1, noteIndex: -1, currentPentagram: -1 })
-    } else {
-      window.addEventListener('keydown', handleKeyDown)
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown)
-      }
-    }
-  }, [selectedNote, allPentagramsData, mode])
-
-  const barUniqueIds = useMemo(() => {
-    const ids: string[] = []
-    for (let i = 0; i < maxBar; i++) {
-      ids.push(`bar-${i}`)
-    }
-    return ids
-  }, [maxBar])
-  const memoizedBarBoxes = useMemo(() => {
-    return barUniqueIds.map((id, i) => (
-      <VerticalPentagram key={id} indexBar={i} />
-    ))
-  }, [barUniqueIds])
-  //console.log(allPentagramsData)
-  const sendCurrentData = async () => {
-    // make a const that its name its actualEntrace and replace all the status error with ok
-    // without replaceAll since it doesnt work in all browsers
-    const actualEntrace = JSON.stringify(allPentagramsData).replace(
-      /"status":"error"/g,
-      '"status":"ok"'
-    )
-    try {
-      const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: actualEntrace
-      })
-      console.log(actualEntrace, 'arreglado')
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data: VerticalBarData[] = await response.json()
-      setAllPentagramsData(data)
-      console.log('Data fetched and state updated successfully:', data)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
-  }
-  /*
-   * Resize with the actual navigator size WIP
-   **/
-  useEffect(() => {
-    const measureWidth = () => {
-      const expectedWidth = 1951
-      setInitialScale(
-        window.innerWidth > 768 ? window.innerWidth / expectedWidth : 0.9
-      )
-    }
-    measureWidth()
-    window.addEventListener('resize', measureWidth)
-    return () => {
-      window.removeEventListener('resize', measureWidth)
-    }
-  }, [])
-  useEffect(() => {
-    if (
-      allPentagramsData[selectedNote.barIndex] === undefined ||
-      allPentagramsData[selectedNote.barIndex].allBar[
-        selectedNote.currentPentagram
-      ] === undefined
-    )
-      return
-    const currentNote: CircleData =
-      allPentagramsData[selectedNote.barIndex].allBar[
-        selectedNote.currentPentagram
-      ].currentNotes[selectedNote.noteIndex]
-    if (currentNote === undefined) return
-    const actualNote: ActualNote = { name: 'Z', midiValue: -1, scale: 5 }
-    ;[actualNote.name, actualNote.scale, actualNote.midiValue] = getNoteInfo({
-      currentBar:
-        allPentagramsData[selectedNote.barIndex].allBar[
-          selectedNote.currentPentagram
-        ],
-      currentNote: currentNote
-    })
-    setActualNote(actualNote)
-  }, [selectedNote, allPentagramsData])
   return (
     <MainScoreContext.Provider
       value={{
         maxHeight,
         setMaxHeightPerBar,
         maxPentagram,
+        setMaxPentagram,
         maxBar,
         setMaxBar,
         allPentagramsData,
         setAllPentagramsData,
         mode,
+        setMode,
         currentNoteSize,
         setCurrentNoteSize,
         selectedNote,
-        setSelectedNote
+        setSelectedNote,
+        setCurrentScale
       }}
     >
-      <div>
-        <button onClick={() => setMaxPentagram((prev) => prev + 1)}>
-          Pentagrama++
-        </button>
-        <button
-          onClick={() => setMaxPentagram((prev) => Math.max(prev - 1, 1))}
-        >
-          Pentagrama--
-        </button>
-        <button onClick={() => setMode(DISPLAY_MODE.ADD_BAR)}>Bar++</button>
-        <button onClick={() => setMode(DISPLAY_MODE.REMOVE_BAR)}>Bar--</button>
-        <button onClick={() => setMode(DISPLAY_MODE.SELECT_NOTE)}>
-          Select
-        </button>
-        <button onClick={() => setMode(DISPLAY_MODE.ADD_NOTE)}>Add</button>
-        <button
-          onClick={() => {
-            setMode(DISPLAY_MODE.REMOVE_NOTE)
-            setSelectedNote({
-              barIndex: -1,
-              noteIndex: -1,
-              currentPentagram: -1
-            })
-          }}
-        >
-          Remove
-        </button>
-        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.NEGRA)}>
-          Negra
-        </button>
-        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.BLANCA)}>
-          Blanca
-        </button>
-        <button onClick={() => setCurrentNoteSize(NOTE_DURATION.REDONDA)}>
-          Redonda
-        </button>
-        <button onClick={sendCurrentData}>Fetching</button>
-        <button onClick={() => setCurrentScale((prev) => prev + 0.1)}>
-          Zoom In
-        </button>
-        <button
-          onClick={() => setCurrentScale((prev) => Math.max(prev - 0.1, 0.5))}
-        >
-          Zoom Out
-        </button>
-        <button onClick={() => setMode(DISPLAY_MODE.TOGGLE_CLAVE)}>
-          Toggle Clave
-        </button>
-        {' Selected Note: '}
-        {actualNote?.name}
-        {actualNote?.scale}
-        {' = Midi Value: '}
-        {actualNote?.midiValue}
-      </div>
+      <MenuButtons actualNote={actualNote} />
       <section
         style={{
           display: 'flex',

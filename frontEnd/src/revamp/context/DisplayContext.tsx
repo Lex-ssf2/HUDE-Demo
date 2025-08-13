@@ -12,13 +12,16 @@ export const MainScoreContext = createContext<{
   maxHeight: number[][]
   setMaxHeightPerBar: Dispatch<SetStateAction<number[][][]>>
   maxPentagram: number
+  setMaxPentagram: Dispatch<SetStateAction<number>>
   maxBar: number
   setMaxBar: Dispatch<SetStateAction<number>>
   allPentagramsData: VerticalBarData[]
   setAllPentagramsData: (data: VerticalBarData[]) => void
   mode: number
+  setMode: Dispatch<SetStateAction<number>>
   currentNoteSize: number
   setCurrentNoteSize: Dispatch<SetStateAction<number>>
   selectedNote: SelectedNote
   setSelectedNote: Dispatch<SetStateAction<SelectedNote>>
+  setCurrentScale: Dispatch<SetStateAction<number>>
 } | null>(null)

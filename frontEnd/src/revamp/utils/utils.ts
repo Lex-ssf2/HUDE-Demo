@@ -1,5 +1,3 @@
-// src/utils.ts
-
 import type { RefObject } from 'preact'
 import {
   ALL_CLAVES,
