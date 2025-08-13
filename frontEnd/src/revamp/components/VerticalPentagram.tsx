@@ -195,6 +195,9 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
         }}
         onClick={checkCollisionVertical}
         ref={barRef}
+        onMouseDown={(e) => {
+          if (mode != DISPLAY_MODE.SELECT_NOTE) e.stopPropagation()
+        }}
       >
         {memoizedPentagramBoxes}
       </article>

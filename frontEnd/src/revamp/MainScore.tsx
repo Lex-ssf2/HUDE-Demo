@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useState, useRef } from 'preact/hooks'
 import { MainScoreContext } from './context/DisplayContext'
 import type { SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
@@ -30,6 +30,7 @@ export function MainScore() {
     noteIndex: -1,
     currentPentagram: -1
   })
+  const [position, setPosition] = useState({ x: 0, y: 0 })
 
   const {
     allPentagramsData,
@@ -53,6 +54,31 @@ export function MainScore() {
   const barUniqueIds = useBarUniqueIds(maxBar)
   const memoizedBarBoxes = useMemoizedBarBoxes(barUniqueIds)
 
+  const dragging = useRef(false)
+  const lastMouse = useRef({ x: 0, y: 0 })
+
+  function onMouseDown(e: MouseEvent) {
+    if (e.button !== 0) return // solo click izquierdo
+    dragging.current = true
+    lastMouse.current = { x: e.clientX, y: e.clientY }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
+
+  function onMouseMove(e: MouseEvent) {
+    if (!dragging.current) return
+    const dx = e.clientX - lastMouse.current.x
+    const dy = e.clientY - lastMouse.current.y
+    setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }))
+    lastMouse.current = { x: e.clientX, y: e.clientY }
+  }
+
+  function onMouseUp() {
+    dragging.current = false
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+  }
+
   return (
     <MainScoreContext.Provider
       value={{
@@ -73,17 +99,37 @@ export function MainScore() {
         setCurrentScale
       }}
     >
-      <MenuButtons actualNote={actualNote} />
-      <section
-        style={{
-          display: 'flex',
-          width: 'auto',
-          transform: `scale(${initialScale * currentScale})`,
-          transformOrigin: 'top left'
-        }}
-      >
-        {memoizedBarBoxes}
-      </section>
+      <>
+        <section style={{ position: 'absolute', zIndex: 1 }}>
+          <MenuButtons actualNote={actualNote} />
+          <MenuButtons actualNote={actualNote} />
+          <MenuButtons actualNote={actualNote} />
+        </section>
+        <section
+          style={{
+            position: 'absolute',
+            cursor: dragging.current ? 'grabbing' : 'grab',
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden'
+          }}
+          onMouseDown={onMouseDown}
+        >
+          <section
+            style={{
+              display: 'flex',
+              width: 'auto',
+              left: position.x / 1.5,
+              top: position.y / 1.5,
+              position: 'relative',
+              transform: `scale(${initialScale * currentScale})`,
+              transformOrigin: 'top left'
+            }}
+          >
+            {memoizedBarBoxes}
+          </section>
+        </section>
+      </>
     </MainScoreContext.Provider>
   )
 }

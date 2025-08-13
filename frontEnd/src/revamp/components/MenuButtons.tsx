@@ -27,7 +27,7 @@ export function MenuButtons({ actualNote }: { actualNote: ActualNote | null }) {
       '"status":"ok"'
     )
     try {
-      const response = await fetch('http://localhost:5559/revision/echojson', {
+      const response = await fetch('http://localhost:5555/revision/echojson', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
