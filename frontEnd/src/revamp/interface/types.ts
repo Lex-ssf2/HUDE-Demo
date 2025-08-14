@@ -38,4 +38,5 @@ export interface UpdateWidthProps {
   maxPentagram: number
   indexBar: number
   allPentagramsData: VerticalBarData[]
+  hasClef: boolean
 }

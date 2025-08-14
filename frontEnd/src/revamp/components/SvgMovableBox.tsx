@@ -92,6 +92,7 @@ export function SvgMovableBox({
     if (!svgRef.current) return
     const svgRect = svgRef.current.getBoundingClientRect()
     const copyPentagram = [...allPentagramsData]
+    let hasClef = false
     if (mode === DISPLAY_MODE.TOGGLE_CLAVE) {
       setToggleClave(
         !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
@@ -110,12 +111,34 @@ export function SvgMovableBox({
           copyPentagram[index].allBar[indexPentagram].claveIndex = actualIndex
         }
       }
-      ;[copyPentagram[indexBar].allBar[indexPentagram]] = updatePosition({
-        currentBar: copyPentagram[indexBar].allBar[indexPentagram],
-        indexBar
-      })
+      hasClef = copyPentagram[indexBar].allBar[indexPentagram].claveVisible
+      for (
+        let index = 0;
+        index < copyPentagram[indexBar].allBar.length && !hasClef;
+        index++
+      ) {
+        if (copyPentagram[indexBar].allBar[index].claveVisible) hasClef = true
+      }
+      for (
+        let index = 0;
+        index < copyPentagram[indexBar].allBar.length;
+        index++
+      ) {
+        ;[copyPentagram[indexBar].allBar[index]] = updatePosition({
+          currentBar: copyPentagram[indexBar].allBar[index],
+          indexBar,
+          hasClef
+        })
+      }
       setAllPentagramsData(copyPentagram)
       return
+    }
+    for (
+      let index = 0;
+      index < copyPentagram[indexBar].allBar.length && !hasClef;
+      index++
+    ) {
+      if (copyPentagram[indexBar].allBar[index].claveVisible) hasClef = true
     }
     if (mode != DISPLAY_MODE.ADD_NOTE) return
     const clientY = event.clientY - svgRect.top
@@ -133,7 +156,8 @@ export function SvgMovableBox({
       actualNoteYPos,
       actualClientX,
       nextCircleId,
-      currentNoteSize
+      currentNoteSize,
+      hasClef
     })
     setAllPentagramsData(copyPentagram)
     onCircleAdded(copyPentagram[indexBar].allBar[indexPentagram].currentNotes)
@@ -263,9 +287,28 @@ export function SvgMovableBox({
     copyPentagram[indexBar].allBar[indexPentagram].claveIndex++
     copyPentagram[indexBar].allBar[indexPentagram].claveIndex %=
       ALL_CLAVES.length
+    const actualIndex =
+      copyPentagram[indexBar].allBar[indexPentagram].claveIndex
+    // Updates the next clef for the next pentagram
+    for (let index = indexBar + 1; index < copyPentagram.length; index++) {
+      if (copyPentagram[index].allBar[indexPentagram].claveVisible) break
+      copyPentagram[index].allBar[indexPentagram].claveIndex = actualIndex
+    }
+    let hasClef = false
+    for (
+      let index = 0;
+      index < copyPentagram[indexBar].allBar.length;
+      index++
+    ) {
+      if (copyPentagram[indexBar].allBar[index].claveVisible) {
+        hasClef = true
+        break
+      }
+    }
     ;[copyPentagram[indexBar].allBar[indexPentagram]] = updatePosition({
       currentBar: copyPentagram[indexBar].allBar[indexPentagram],
-      indexBar
+      indexBar,
+      hasClef
     })
     setAllPentagramsData(copyPentagram)
   }

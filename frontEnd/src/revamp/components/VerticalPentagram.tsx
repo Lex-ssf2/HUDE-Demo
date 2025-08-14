@@ -72,10 +72,19 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     }
   }, [maxPentagram, indexBar])
   useEffect(() => {
+    let hasClef = false
+    for (
+      let index = 0;
+      index < allPentagramsData[indexBar].allBar.length && !hasClef;
+      index++
+    ) {
+      if (allPentagramsData[indexBar].allBar[index].claveVisible) hasClef = true
+    }
     const totalWidth = updateWidth({
       maxPentagram,
       indexBar,
-      allPentagramsData: allPentagramsData
+      allPentagramsData: allPentagramsData,
+      hasClef
     })
     setSvgViewboxWidth(totalWidth)
   }, [allPentagramsData, maxPentagram, indexBar, mode])

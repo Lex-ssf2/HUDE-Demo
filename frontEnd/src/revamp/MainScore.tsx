@@ -119,8 +119,8 @@ export function MainScore() {
             style={{
               display: 'flex',
               width: 'auto',
-              left: position.x / 1.5,
-              top: position.y / 1.5,
+              left: `calc(${position.x}px + 5%)`,
+              top: `calc(20% + ${position.y}px)`,
               position: 'relative',
               transform: `scale(${initialScale * currentScale})`,
               transformOrigin: 'top left'

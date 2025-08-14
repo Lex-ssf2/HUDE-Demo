@@ -18,7 +18,8 @@ import { type CircleData, type UpdateWidthProps } from '../interface/types'
 export function updateWidth({
   maxPentagram,
   indexBar,
-  allPentagramsData
+  allPentagramsData,
+  hasClef
 }: UpdateWidthProps): number {
   const MIN_ITEM_WIDTH = CIRCLE_RADIUS * 2 + IDEAL_SPACING
   const MIN_VIEWBOX_WIDTH =
@@ -31,9 +32,7 @@ export function updateWidth({
     if (!allTMPNotes) continue
     let lastSize = 1
     let tmpSize =
-      allPentagramsData[indexBar].allBar[i].claveVisible || indexBar === 0
-        ? MINIMUM_START_DISTANCE
-        : CIRCLE_RADIUS * 1.5
+      hasClef || indexBar === 0 ? MINIMUM_START_DISTANCE : CIRCLE_RADIUS * 1.5
     for (let j = 0; j < allTMPNotes.length; j++) {
       lastSize = allTMPNotes[j].noteDuration
       tmpSize += MAX_NOTE_SIZE / lastSize
@@ -69,15 +68,15 @@ export function getNoteInfo({
 
 export function updatePosition({
   currentBar,
-  indexBar
+  indexBar,
+  hasClef
 }: {
   currentBar: BarData
   indexBar: number
+  hasClef: boolean
 }) {
   let actualSize =
-    currentBar.claveVisible || indexBar === 0
-      ? MINIMUM_START_DISTANCE
-      : CIRCLE_RADIUS * 1.5
+    hasClef || indexBar === 0 ? MINIMUM_START_DISTANCE : CIRCLE_RADIUS * 1.5
   let lastSize = 1
   const clickedCirclesData = currentBar.currentNotes
   for (let index = 0; index < clickedCirclesData.length; index++) {
@@ -94,7 +93,8 @@ export function addNoteAndUpdate({
   actualNoteYPos,
   actualClientX,
   nextCircleId,
-  currentNoteSize
+  currentNoteSize,
+  hasClef
 }: {
   currentBar: BarData
   indexBar: number
@@ -102,13 +102,12 @@ export function addNoteAndUpdate({
   actualClientX: number
   currentNoteSize: number
   nextCircleId: RefObject<number>
+  hasClef: boolean
 }) {
   if (nextCircleId === null || nextCircleId.current === null) return []
   const clickedCirclesData = currentBar.currentNotes
   let actualSize =
-    currentBar.claveVisible || indexBar === 0
-      ? MINIMUM_START_DISTANCE
-      : CIRCLE_RADIUS * 1.5
+    hasClef || indexBar === 0 ? MINIMUM_START_DISTANCE : CIRCLE_RADIUS * 1.5
   let lastSize = 1
   let isInMiddle = false
   const newCircleData: CircleData = {
