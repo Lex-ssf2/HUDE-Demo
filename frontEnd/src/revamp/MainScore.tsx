@@ -100,10 +100,46 @@ export function MainScore() {
       }}
     >
       <>
-        <section style={{ position: 'absolute', zIndex: 1 }}>
-          <MenuButtons actualNote={actualNote} />
-          <MenuButtons actualNote={actualNote} />
-          <MenuButtons actualNote={actualNote} />
+        <section
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'absolute',
+            zIndex: 1,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none'
+          }}
+        >
+          <MenuButtons />
+          {selectedNote.currentPentagram !== -1 &&
+            mode === DISPLAY_MODE.SELECT_NOTE && (
+              <aside
+                style={{
+                  width: '20%',
+                  height: '100%',
+                  backgroundColor: 'rgb(202, 202, 202)',
+                  borderTopRightRadius: '2%',
+                  borderBottomRightRadius: '2%',
+                  pointerEvents: 'auto',
+                  wordBreak: 'break-all'
+                }}
+              >
+                {' Selected Note: '}
+                {actualNote?.name}
+                {actualNote?.scale}
+                <br />
+                {'Midi Value: '}
+                {actualNote?.midiValue}
+                <br />
+                {'Note Info: '}
+                {JSON.stringify(
+                  allPentagramsData[selectedNote.barIndex].allBar[
+                    selectedNote.currentPentagram
+                  ].currentNotes[selectedNote.noteIndex].errors ?? ['No errors']
+                )}
+              </aside>
+            )}
         </section>
         <section
           style={{

@@ -70,6 +70,15 @@ export function useSelectedNoteHandler(
       tmpAllBars[selectedNote.barIndex].allBar[
         selectedNote.currentPentagram
       ].currentNotes = updatedNotes
+      let hasClef = false
+      for (
+        let index = 0;
+        index < tmpAllBars[selectedNote.barIndex].allBar.length && !hasClef;
+        index++
+      ) {
+        if (tmpAllBars[selectedNote.barIndex].allBar[index].claveVisible)
+          hasClef = true
+      }
       ;[
         tmpAllBars[selectedNote.barIndex].allBar[selectedNote.currentPentagram]
       ] = updatePosition({
@@ -77,7 +86,8 @@ export function useSelectedNoteHandler(
           tmpAllBars[selectedNote.barIndex].allBar[
             selectedNote.currentPentagram
           ],
-        indexBar: selectedNote.barIndex
+        indexBar: selectedNote.barIndex,
+        hasClef
       })
       setAllPentagramsData(tmpAllBars)
       setSelectedNote({ barIndex: -1, noteIndex: -1, currentPentagram: -1 })

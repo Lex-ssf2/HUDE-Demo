@@ -104,6 +104,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     [allPentagramsData, indexBar, setAllPentagramsData]
   )
 
+  //NO funciona bien :P
   const handleCircleClickedInBox = useCallback(
     (barId: number, pentagramId: number, noteId: number) => {
       setSelectedNote({

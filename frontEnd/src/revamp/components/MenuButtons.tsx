@@ -3,9 +3,8 @@ import { MainScoreContext } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { NOTE_DURATION } from '../enums/Notes'
 import type { VerticalBarData } from '../interface/BarInterface'
-import type { ActualNote } from '../interface/types'
 
-export function MenuButtons({ actualNote }: { actualNote: ActualNote | null }) {
+export function MenuButtons() {
   const mainScore = useContext(MainScoreContext)
   if (!mainScore) {
     console.error('MainScoreContext not available in MenuButtons')
@@ -22,10 +21,16 @@ export function MenuButtons({ actualNote }: { actualNote: ActualNote | null }) {
     setCurrentScale
   } = mainScore
   const sendCurrentData = async () => {
-    const actualEntrace = JSON.stringify(allPentagramsData).replace(
-      /"status":"error"/g,
-      '"status":"ok"'
-    )
+    const tmpData = [...allPentagramsData]
+    tmpData.forEach((pentagram) => {
+      pentagram.allBar.forEach((bar) => {
+        bar.currentNotes.forEach((note) => {
+          note.status = 'ok'
+          delete note.errors
+        })
+      })
+    })
+    const actualEntrace = JSON.stringify(tmpData)
     try {
       const response = await fetch('http://localhost:5555/revision/echojson', {
         method: 'POST',
@@ -48,7 +53,7 @@ export function MenuButtons({ actualNote }: { actualNote: ActualNote | null }) {
     }
   }
   return (
-    <div>
+    <div style={{ pointerEvents: 'auto' }}>
       <button onClick={() => setMaxPentagram((prev) => prev + 1)}>
         Pentagrama++
       </button>
@@ -92,11 +97,6 @@ export function MenuButtons({ actualNote }: { actualNote: ActualNote | null }) {
       <button onClick={() => setMode(DISPLAY_MODE.TOGGLE_CLAVE)}>
         Toggle Clave
       </button>
-      {' Selected Note: '}
-      {actualNote?.name}
-      {actualNote?.scale}
-      {' = Midi Value: '}
-      {actualNote?.midiValue}
     </div>
   )
 }

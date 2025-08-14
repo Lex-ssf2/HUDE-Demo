@@ -9,6 +9,7 @@ export interface CircleData {
   noteDuration: number
   //scaleNum: number
   status: string
+  errors?: string[]
 }
 
 export interface SelectedNote {
