@@ -3,8 +3,9 @@ import { MainScoreContext } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { NOTE_DURATION } from '../enums/Notes'
 import type { VerticalBarData } from '../interface/BarInterface'
+import { SplendidGrandPiano, Soundfont } from 'smplr'
 
-export function MenuButtons() {
+export function MenuButtons({ playMusic }: { playMusic: () => void }) {
   const mainScore = useContext(MainScoreContext)
   if (!mainScore) {
     console.error('MainScoreContext not available in MenuButtons')
@@ -32,13 +33,16 @@ export function MenuButtons() {
     })
     const actualEntrace = JSON.stringify(tmpData)
     try {
-      const response = await fetch('http://localhost:5555/revision/echojson', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: actualEntrace
-      })
+      const response = await fetch(
+        'http://192.168.196.122:5555/revision/echojson',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: actualEntrace
+        }
+      )
       console.log(actualEntrace, 'arreglado')
 
       if (!response.ok) {
@@ -54,6 +58,8 @@ export function MenuButtons() {
   }
   return (
     <div style={{ pointerEvents: 'auto' }}>
+      <button onClick={playMusic}>Play</button>
+
       <button onClick={() => setMaxPentagram((prev) => prev + 1)}>
         Pentagrama++
       </button>

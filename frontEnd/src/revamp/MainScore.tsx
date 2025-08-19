@@ -1,4 +1,4 @@
-import { useState, useRef } from 'preact/hooks'
+import { useState, useRef, useEffect } from 'preact/hooks'
 import { MainScoreContext } from './context/DisplayContext'
 import type { SelectedNote } from './interface/types'
 import { DISPLAY_MODE } from './enums/mode'
@@ -10,6 +10,9 @@ import { useActualNote } from './hook/useActualNote'
 import { useBarUniqueIds } from './hook/useBarUniqueIds'
 import { useMemoizedBarBoxes } from './hook/useMemoizedBarBoxes'
 import { useInitialScale } from './utils/useInitialScale'
+import { SplendidGrandPiano } from 'smplr'
+import { getNoteInfo } from './utils/utils'
+import type { VerticalBarData } from './interface/BarInterface'
 
 /**
  *
@@ -31,6 +34,67 @@ export function MainScore() {
     currentPentagram: -1
   })
   const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [midiPlayer, setMidiPlayer] = useState<SplendidGrandPiano | null>(null)
+  const [midiPlayerContext, setMidiPlayerContext] =
+    useState<AudioContext | null>(null)
+
+  useEffect(() => {
+    const initPiano = async () => {
+      if (!midiPlayer && !midiPlayerContext) {
+        console.log('Please wait :)')
+        const context = new AudioContext()
+        setMidiPlayerContext(context)
+        const piano = await new SplendidGrandPiano(context).load
+        console.log('Piano initialized')
+        setMidiPlayer(piano)
+      }
+    }
+    initPiano()
+  }, [midiPlayer])
+
+  async function loadNotes() {
+    if (!midiPlayer || !midiPlayerContext) {
+      console.error('Piano not initialized')
+      return
+    }
+    midiPlayerContext.resume()
+    console.log('Loading notes...')
+    const BPM = 60 / 120
+    const allBars = allPentagramsData.length
+    let maxTime = 0
+    for (let bar = 0; bar < allBars; bar++) {
+      const currentBar: VerticalBarData = allPentagramsData[bar]
+      const now = midiPlayerContext.currentTime + maxTime
+      for (
+        let pentagram = 0;
+        pentagram < currentBar.allBar.length;
+        pentagram++
+      ) {
+        let acum = now
+        const currentPentagram = currentBar.allBar[pentagram]
+        for (
+          let note = 0;
+          note < currentPentagram.currentNotes.length;
+          note++
+        ) {
+          const actualNote = currentPentagram.currentNotes[note]
+          const [currentNoteName, currentNoteScale] = getNoteInfo({
+            currentBar: currentPentagram,
+            currentNote: actualNote
+          })
+          midiPlayer.start({
+            note: `${currentNoteName}${currentNoteScale}`,
+            velocity: 80,
+            time: acum,
+            duration: (BPM * 4) / actualNote.noteDuration
+          })
+          acum += (BPM * 4) / actualNote.noteDuration
+        }
+        acum -= midiPlayerContext.currentTime
+        maxTime = Math.max(maxTime, acum)
+      }
+    }
+  }
 
   const {
     allPentagramsData,
@@ -111,7 +175,7 @@ export function MainScore() {
             pointerEvents: 'none'
           }}
         >
-          <MenuButtons />
+          <MenuButtons playMusic={loadNotes} />
           {selectedNote.currentPentagram !== -1 &&
             mode === DISPLAY_MODE.SELECT_NOTE && (
               <aside

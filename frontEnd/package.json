@@ -9,14 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "preact": "^10.26.8"
+    "preact": "^10.26.8",
+    "smplr": "^0.16.3"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   },
-  "prettier":{
+  "prettier": {
     "singleQuote": true,
     "semi": false,
     "trailingComma": "none"
