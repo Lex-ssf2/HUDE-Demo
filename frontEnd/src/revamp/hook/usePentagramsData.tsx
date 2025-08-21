@@ -27,7 +27,7 @@ export function usePentagramsData(maxPentagram: number, maxBar: number) {
             { length: maxPentagram },
             (_, pentagramIndex) => {
               return (
-                prevBar?.allBar[pentagramIndex] ?? {
+                prevBar.allBar[pentagramIndex] ?? {
                   currentNotes: [],
                   claveIndex: 0,
                   claveVisible: false
@@ -35,7 +35,10 @@ export function usePentagramsData(maxPentagram: number, maxBar: number) {
               )
             }
           )
-          return { allBar: newBarContent }
+          return {
+            allBar: newBarContent,
+            clefVisible: prevBar?.clefVisible ?? false
+          }
         }
       )
       return newAllPentagramsData

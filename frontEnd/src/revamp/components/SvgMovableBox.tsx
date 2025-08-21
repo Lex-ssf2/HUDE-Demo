@@ -65,9 +65,6 @@ export function SvgMovableBox({
     offsetYStart + svgViewboxHeight - actualYOffset + actualYOffsetBottom
   }`
   const [pentagramLines, setPentagramLines] = useState<JSX.Element[]>([])
-  const [toggleClave, setToggleClave] = useState(
-    allPentagramsData[indexBar].allBar[indexPentagram].claveVisible
-  )
 
   useEffect(() => {
     const pentagram: JSX.Element[] = []
@@ -92,11 +89,8 @@ export function SvgMovableBox({
     if (!svgRef.current) return
     const svgRect = svgRef.current.getBoundingClientRect()
     const copyPentagram = [...allPentagramsData]
-    let hasClef = false
+    let hasClef = copyPentagram[indexBar].clefVisible
     if (mode === DISPLAY_MODE.TOGGLE_CLAVE) {
-      setToggleClave(
-        !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
-      )
       copyPentagram[indexBar].allBar[indexPentagram].claveVisible =
         !copyPentagram[indexBar].allBar[indexPentagram].claveVisible
       if (!copyPentagram[indexBar].allBar[indexPentagram].claveVisible) {
@@ -119,6 +113,7 @@ export function SvgMovableBox({
       ) {
         if (copyPentagram[indexBar].allBar[index].claveVisible) hasClef = true
       }
+      copyPentagram[indexBar].clefVisible = hasClef
       for (
         let index = 0;
         index < copyPentagram[indexBar].allBar.length;
@@ -132,13 +127,6 @@ export function SvgMovableBox({
       }
       setAllPentagramsData(copyPentagram)
       return
-    }
-    for (
-      let index = 0;
-      index < copyPentagram[indexBar].allBar.length && !hasClef;
-      index++
-    ) {
-      if (copyPentagram[indexBar].allBar[index].claveVisible) hasClef = true
     }
     if (mode != DISPLAY_MODE.ADD_NOTE) return
     const clientY = event.clientY - svgRect.top
@@ -179,6 +167,7 @@ export function SvgMovableBox({
     [onCircleClicked, mode, allPentagramsData]
   )
   const renderedCircles = useMemo(() => {
+    console.log(indexBar, indexPentagram)
     const newCircleRadius = circleRadius / 2
     // This verification is need it cuz for some reason when updating
     // the current notes sometimes it deletes the bar (?
@@ -277,8 +266,8 @@ export function SvgMovableBox({
     svgViewboxWidth,
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes,
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes.length,
-    svgViewboxHeight,
-    toggleClave
+    allPentagramsData[indexBar].clefVisible,
+    svgViewboxHeight
   ])
   const changeClave = (e: MouseEvent) => {
     if (mode === DISPLAY_MODE.TOGGLE_CLAVE) return

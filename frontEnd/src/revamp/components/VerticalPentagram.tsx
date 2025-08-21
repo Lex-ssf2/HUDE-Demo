@@ -152,7 +152,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
       })
     }
     const initialData: VerticalBarData = {
-      allBar: barContent
+      allBar: barContent,
+      clefVisible: false
     }
     if (mode === DISPLAY_MODE.ADD_BAR) {
       currentId = clientX <= svgViewboxWidth / 2 ? indexBar : indexBar + 1
