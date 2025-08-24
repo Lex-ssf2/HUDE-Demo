@@ -37,7 +37,8 @@ export function usePentagramsData(maxPentagram: number, maxBar: number) {
           )
           return {
             allBar: newBarContent,
-            clefVisible: prevBar?.clefVisible ?? false
+            clefVisible: prevBar?.clefVisible ?? false,
+            tickNumber: prevBar?.tickNumber ?? 0
           }
         }
       )

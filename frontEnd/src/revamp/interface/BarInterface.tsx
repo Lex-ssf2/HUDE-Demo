@@ -18,6 +18,7 @@ export interface VerticalPentagramProps {
 export interface VerticalBarData {
   allBar: BarData[]
   clefVisible: boolean
+  tickNumber: number
 }
 
 export interface BarData {

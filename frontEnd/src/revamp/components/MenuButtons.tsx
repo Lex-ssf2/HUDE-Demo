@@ -33,16 +33,13 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     })
     const actualEntrace = JSON.stringify(tmpData)
     try {
-      const response = await fetch(
-        'http://192.168.196.122:5555/revision/echojson',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: actualEntrace
-        }
-      )
+      const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: actualEntrace
+      })
       console.log(actualEntrace, 'arreglado')
 
       if (!response.ok) {

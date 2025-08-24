@@ -36,7 +36,7 @@ export function createInitialPentagramsData(
         claveVisible: false
       })
     }
-    initialData.push({ allBar: barContent, clefVisible: false })
+    initialData.push({ allBar: barContent, clefVisible: false, tickNumber: 0 })
   }
   return initialData
 }

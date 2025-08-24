@@ -13,6 +13,7 @@ import { useInitialScale } from './utils/useInitialScale'
 import { SplendidGrandPiano } from 'smplr'
 import { getNoteInfo } from './utils/utils'
 import type { VerticalBarData } from './interface/BarInterface'
+import { Fragment } from 'preact/jsx-runtime'
 
 /**
  *
@@ -57,13 +58,15 @@ export function MainScore() {
       console.error('Piano not initialized')
       return
     }
+    midiPlayer.stop()
     midiPlayerContext.resume()
     console.log('Loading notes...')
     const BPM = 60 / 120
-    const allBars = allPentagramsData.length
+    const copyPentagrams = [...allPentagramsData]
+    const allBars = copyPentagrams.length
     let maxTime = 0
     for (let bar = 0; bar < allBars; bar++) {
-      const currentBar: VerticalBarData = allPentagramsData[bar]
+      const currentBar: VerticalBarData = copyPentagrams[bar]
       const now = midiPlayerContext.currentTime + maxTime
       for (
         let pentagram = 0;
@@ -86,7 +89,48 @@ export function MainScore() {
             note: `${currentNoteName}${currentNoteScale}`,
             velocity: 80,
             time: acum,
-            duration: (BPM * 4) / actualNote.noteDuration
+            duration: (BPM * 4) / actualNote.noteDuration,
+            onStart: () => {
+              const updatePentagrams = [...allPentagramsData]
+
+              updatePentagrams[bar].allBar[pentagram].currentNotes[
+                note
+              ].status = 'error'
+              if (note !== 0) {
+                updatePentagrams[bar].allBar[pentagram].currentNotes[
+                  note - 1
+                ].status = 'ok'
+              } else {
+                if (bar !== 0) {
+                  const lastNote =
+                    updatePentagrams[bar - 1].allBar[pentagram].currentNotes
+                      .length - 1
+                  updatePentagrams[bar - 1].allBar[pentagram].currentNotes[
+                    lastNote
+                  ].status = 'ok'
+                  updatePentagrams[bar - 1].tickNumber++
+                }
+              }
+              updatePentagrams[bar].tickNumber++
+              setAllPentagramsData(updatePentagrams)
+              console.log(
+                'Playing note:',
+                `${currentNoteName}${currentNoteScale}`
+              )
+            },
+            onEnded: () => {
+              const updatePentagrams = [...allPentagramsData]
+              if (
+                updatePentagrams[bar].allBar[pentagram].currentNotes[note]
+                  .status === 'error'
+              ) {
+                updatePentagrams[bar].allBar[pentagram].currentNotes[
+                  note
+                ].status = 'ok'
+                updatePentagrams[bar].tickNumber++
+                setAllPentagramsData(updatePentagrams)
+              }
+            }
           })
           acum += (BPM * 4) / actualNote.noteDuration
         }
@@ -170,8 +214,8 @@ export function MainScore() {
             flexDirection: 'column',
             position: 'absolute',
             zIndex: 1,
-            width: '100%',
-            height: '100%',
+            width: '99%',
+            height: '99%',
             pointerEvents: 'none'
           }}
         >
@@ -209,8 +253,8 @@ export function MainScore() {
           style={{
             position: 'absolute',
             cursor: dragging.current ? 'grabbing' : 'grab',
-            width: '100vw',
-            height: '100vh',
+            width: '99%',
+            height: '99%',
             overflow: 'hidden'
           }}
           onMouseDown={onMouseDown}
@@ -219,6 +263,7 @@ export function MainScore() {
             style={{
               display: 'flex',
               width: 'auto',
+              height: 'auto',
               left: `calc(${position.x}px + 5%)`,
               top: `calc(20% + ${position.y}px)`,
               position: 'relative',

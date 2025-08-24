@@ -76,7 +76,7 @@ export function SvgMovableBox({
           y1={height * index}
           x2={svgViewboxWidth.toString()}
           y2={height * index}
-          stroke="red"
+          stroke="black"
           stroke-width="3"
         />
       )
@@ -267,6 +267,7 @@ export function SvgMovableBox({
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes,
     allPentagramsData[indexBar].allBar[indexPentagram].currentNotes.length,
     allPentagramsData[indexBar].clefVisible,
+    allPentagramsData[indexBar].tickNumber,
     svgViewboxHeight
   ])
   const changeClave = (e: MouseEvent) => {
