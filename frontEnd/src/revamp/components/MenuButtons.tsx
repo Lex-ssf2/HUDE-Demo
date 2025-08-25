@@ -33,7 +33,7 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     const actualEntrace = JSON.stringify(tmpData)
     try {
       const response = await fetch(
-        'http://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
+        'https://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
         {
           method: 'POST',
           headers: {
