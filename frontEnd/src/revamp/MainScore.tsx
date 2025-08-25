@@ -185,7 +185,7 @@ export function MainScore() {
   }
 
   function onTouchStart(e: TouchEvent) {
-    if (!e.touches || e.touches.length !== 1) return;
+    if (!e.touches || e.touches.length !== 1 || dragging.current) return;
     dragging.current = true;
     const touch = e.touches[0];
     lastMouse.current = { x: touch.clientX, y: touch.clientY };
@@ -193,14 +193,20 @@ export function MainScore() {
     window.addEventListener('touchend', onTouchEnd);
   }
 
+  let touchMoveFrame: number | null = null;
   function onTouchMove(e: TouchEvent) {
     if (!dragging.current || !e.touches || e.touches.length !== 1) return;
     e.preventDefault();
     const touch = e.touches[0];
     const dx = touch.clientX - lastMouse.current.x;
     const dy = touch.clientY - lastMouse.current.y;
-    setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }));
-    lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    if (touchMoveFrame) {
+      cancelAnimationFrame(touchMoveFrame);
+    }
+    touchMoveFrame = requestAnimationFrame(() => {
+      setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }));
+      lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    });
   }
 
   function onTouchEnd() {
