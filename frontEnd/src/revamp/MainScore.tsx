@@ -37,7 +37,6 @@ export function MainScore() {
   const [midiPlayer, setMidiPlayer] = useState<SplendidGrandPiano | null>(null)
   const [midiPlayerContext, setMidiPlayerContext] =
     useState<AudioContext | null>(null)
-
   useEffect(() => {
     const initPiano = async () => {
       if (!midiPlayer && !midiPlayerContext) {
@@ -190,12 +189,13 @@ export function MainScore() {
     dragging.current = true;
     const touch = e.touches[0];
     lastMouse.current = { x: touch.clientX, y: touch.clientY };
-    window.addEventListener('touchmove', onTouchMove);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd);
   }
 
   function onTouchMove(e: TouchEvent) {
     if (!dragging.current || !e.touches || e.touches.length !== 1) return;
+    e.preventDefault();
     const touch = e.touches[0];
     const dx = touch.clientX - lastMouse.current.x;
     const dy = touch.clientY - lastMouse.current.y;
