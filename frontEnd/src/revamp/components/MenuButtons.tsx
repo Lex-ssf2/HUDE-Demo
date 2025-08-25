@@ -3,7 +3,6 @@ import { MainScoreContext } from '../context/DisplayContext'
 import { DISPLAY_MODE } from '../enums/mode'
 import { NOTE_DURATION } from '../enums/Notes'
 import type { VerticalBarData } from '../interface/BarInterface'
-import { SplendidGrandPiano, Soundfont } from 'smplr'
 
 export function MenuButtons({ playMusic }: { playMusic: () => void }) {
   const mainScore = useContext(MainScoreContext)
@@ -33,13 +32,16 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     })
     const actualEntrace = JSON.stringify(tmpData)
     try {
-      const response = await fetch('http://172.16.0.6:5555/revision/echojson', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: actualEntrace
-      })
+      const response = await fetch(
+        'http://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: actualEntrace
+        }
+      )
       console.log(actualEntrace, 'arreglado')
 
       if (!response.ok) {

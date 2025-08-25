@@ -154,6 +154,7 @@ export function SvgMovableBox({
   const handleCircleClick = useCallback(
     (circleDataToReturn: CircleData, event: MouseEvent) => {
       //event.stopPropagation()
+      console.log(event)
       if (onCircleClicked) {
         onCircleClicked(
           indexBar,

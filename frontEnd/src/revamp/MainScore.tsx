@@ -13,7 +13,6 @@ import { useInitialScale } from './utils/useInitialScale'
 import { SplendidGrandPiano } from 'smplr'
 import { getNoteInfo } from './utils/utils'
 import type { VerticalBarData } from './interface/BarInterface'
-import { Fragment } from 'preact/jsx-runtime'
 
 /**
  *
