@@ -157,7 +157,6 @@ export function MainScore() {
   const actualNote = useActualNote(selectedNote, allPentagramsData)
 
   useInitialScale(setInitialScale)
-
   const barUniqueIds = useBarUniqueIds(maxBar)
   const memoizedBarBoxes = useMemoizedBarBoxes(barUniqueIds)
 
@@ -186,6 +185,29 @@ export function MainScore() {
     window.removeEventListener('mouseup', onMouseUp)
   }
 
+  function onTouchStart(e: TouchEvent) {
+    if (!e.touches || e.touches.length !== 1) return;
+    dragging.current = true;
+    const touch = e.touches[0];
+    lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    window.addEventListener('touchmove', onTouchMove);
+    window.addEventListener('touchend', onTouchEnd);
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    if (!dragging.current || !e.touches || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - lastMouse.current.x;
+    const dy = touch.clientY - lastMouse.current.y;
+    setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }));
+    lastMouse.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function onTouchEnd() {
+    dragging.current = false;
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+  }
   return (
     <MainScoreContext.Provider
       value={{
@@ -257,6 +279,7 @@ export function MainScore() {
             overflow: 'hidden'
           }}
           onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
         >
           <section
             style={{
