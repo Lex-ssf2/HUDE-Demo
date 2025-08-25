@@ -166,8 +166,6 @@ export function MainScore() {
     if (e.button !== 0) return // solo click izquierdo
     dragging.current = true
     lastMouse.current = { x: e.clientX, y: e.clientY }
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
   }
 
   function onMouseMove(e: MouseEvent) {
@@ -180,8 +178,6 @@ export function MainScore() {
 
   function onMouseUp() {
     dragging.current = false
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', onMouseUp)
   }
 
   function onTouchStart(e: TouchEvent) {
@@ -189,30 +185,20 @@ export function MainScore() {
     dragging.current = true;
     const touch = e.touches[0];
     lastMouse.current = { x: touch.clientX, y: touch.clientY };
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
   }
 
-  let touchMoveFrame: number | null = null;
   function onTouchMove(e: TouchEvent) {
     if (!dragging.current || !e.touches || e.touches.length !== 1) return;
     e.preventDefault();
     const touch = e.touches[0];
     const dx = touch.clientX - lastMouse.current.x;
     const dy = touch.clientY - lastMouse.current.y;
-    if (touchMoveFrame) {
-      cancelAnimationFrame(touchMoveFrame);
-    }
-    touchMoveFrame = requestAnimationFrame(() => {
       setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }));
       lastMouse.current = { x: touch.clientX, y: touch.clientY };
-    });
   }
 
   function onTouchEnd() {
     dragging.current = false;
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
   }
   return (
     <MainScoreContext.Provider
@@ -285,7 +271,11 @@ export function MainScore() {
             overflow: 'hidden'
           }}
           onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
           onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <section
             style={{
