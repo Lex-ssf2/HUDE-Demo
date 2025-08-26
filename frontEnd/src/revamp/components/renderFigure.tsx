@@ -11,7 +11,9 @@ export const currentClave = (
   const arrayOfElements = [
     <ClaveSol x={-25} onClick={onClick} />,
     <ClaveF x={-25} y={6} onClick={onClick} />,
-    <ClaveDo x={-25} y={12.5} onClick={onClick} />
+    <ClaveDo x={-25} y={12.5} onClick={onClick} />,
+    <ClaveDo x={-25} y={44} onClick={onClick} />,
+    <ClaveDo x={-25} y={-5} onClick={onClick} />
   ]
   return arrayOfElements[indexClave % ALL_CLAVES.length]
 }

@@ -24,5 +24,15 @@ export const ALL_CLAVES = [
     startLine: 6,
     startNumScale: 4,
     name: 'CThirdLine'
+  },
+  {
+    startLine: 3,
+    startNumScale: 5,
+    name: 'CFirstLine'
+  },
+  {
+    startLine: 4,
+    startNumScale: 4,
+    name: 'CFourthLine'
   }
 ]

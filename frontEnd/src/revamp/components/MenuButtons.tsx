@@ -34,6 +34,7 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     try {
       const response = await fetch(
         'https://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
+        //'http://172.16.0.6:8000/revision/echojson',
         {
           method: 'POST',
           headers: {
