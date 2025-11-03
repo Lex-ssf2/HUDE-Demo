@@ -48,7 +48,8 @@ export function SvgMovableBox({
   if (
     !maxHeight[indexPentagram] ||
     maxHeight[indexPentagram][0] === undefined ||
-    maxHeight[indexPentagram][1] === undefined
+    maxHeight[indexPentagram][1] === undefined ||
+    allPentagramsData[indexBar].allBar[indexPentagram] === undefined
   )
     return
 

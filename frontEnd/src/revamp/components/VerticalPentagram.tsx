@@ -63,13 +63,11 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   const barRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    if (maxPentagram != null) {
-      const newIds: string[] = []
-      for (let i = 0; i < maxPentagram; i++) {
-        newIds.push(`pentagram-${indexBar}-${i}`)
-      }
-      setPentagramUniqueIds(newIds)
+    const newIds: string[] = []
+    for (let i = 0; i < maxPentagram; i++) {
+      newIds.push(`pentagram-${indexBar}-${i}`)
     }
+    setPentagramUniqueIds(newIds)
   }, [maxPentagram, indexBar])
   useEffect(() => {
     let hasClef = false
@@ -101,7 +99,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
         setAllPentagramsData(copyAllPentagramsData)
       }
     },
-    [allPentagramsData, indexBar, setAllPentagramsData]
+    [allPentagramsData, indexBar, setAllPentagramsData, maxPentagram]
   )
 
   //NO funciona bien :P
@@ -117,6 +115,7 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
   )
 
   const memoizedPentagramBoxes = useMemo(() => {
+    console.log('Rendering Pentagram Boxes', maxPentagram)
     return pentagramUniqueIds.map((id, i) => (
       <SvgMovableBox
         key={id}
@@ -130,7 +129,8 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
     pentagramUniqueIds,
     handleCircleAdded,
     handleCircleClickedInBox,
-    indexBar
+    indexBar,
+    maxPentagram
   ])
 
   const checkCollisionVertical = (event: MouseEvent) => {

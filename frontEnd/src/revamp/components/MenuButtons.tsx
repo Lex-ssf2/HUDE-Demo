@@ -22,7 +22,8 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     setMaxPentagram,
     setMode,
     setCurrentNoteSize,
-    setCurrentScale
+    setCurrentScale,
+    setMaxBar
   } = mainScore
 
   const sendCurrentData = async () => {
@@ -92,8 +93,11 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
       reader.onload = (e) => {
         try {
           const result = e.target?.result as string
-          const data: VerticalBarData[] = JSON.parse(result)
-          setAllPentagramsData(data)
+          const data = JSON.parse(result)
+          const output: VerticalBarData[] = data
+          setMaxBar(Math.max(output.length, 1))
+          setAllPentagramsData(output)
+          setMaxPentagram(Math.max(output[0].allBar.length, 1))
         } catch (err) {
           setError('Error al cargar el archivo')
         }
