@@ -64,8 +64,10 @@ export function VerticalPentagram({ indexBar }: VerticalPentagramProps) {
 
   useEffect(() => {
     const newIds: string[] = []
-    for (let i = 0; i < maxPentagram; i++) {
-      newIds.push(`pentagram-${indexBar}-${i}`)
+    if (maxPentagram != null) {
+      for (let i = 0; i < maxPentagram; i++) {
+        newIds.push(`pentagram-${indexBar}-${i}`)
+      }
     }
     setPentagramUniqueIds(newIds)
   }, [maxPentagram, indexBar])
