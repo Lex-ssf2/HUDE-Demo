@@ -39,8 +39,8 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     const actualEntrace = JSON.stringify(tmpData)
     try {
       const response = await fetch(
-        'https://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
-        //'http://localhost:8000/revision/echojson',
+        //'https://fresh-sheep-josned-dd252bd3.koyeb.app/revision/echojson',
+        'http://localhost:8000/revision/echojson',
         {
           method: 'POST',
           headers: {
@@ -131,6 +131,9 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
         }}
       >
         Remove
+      </button>
+      <button onClick={() => setCurrentNoteSize(NOTE_DURATION.CORCHEA)}>
+        Corchea
       </button>
       <button onClick={() => setCurrentNoteSize(NOTE_DURATION.NEGRA)}>
         Negra

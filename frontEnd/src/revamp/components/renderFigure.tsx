@@ -1,5 +1,5 @@
 import { ClaveSol, ClaveF, ClaveDo } from '../assets/Claves'
-import { Redonda, Blanca, Negra } from '../assets/Notes'
+import { Redonda, Blanca, Negra, Plica } from '../assets/Notes'
 import { ALL_CLAVES } from '../enums/constants'
 import { NOTE_DURATION } from '../enums/Notes'
 import type { CircleData } from '../interface/types'
@@ -25,6 +25,7 @@ export const renderFigure = (
   const STEM_LENGTH = 45
   const STEM_WIDTH = 2.7
   const MEDIUM_VALUE = 8 * 4
+  const FLAG_DIF = 35
   switch (noteInfo.noteDuration) {
     case NOTE_DURATION.REDONDA:
       return (
@@ -79,6 +80,56 @@ export const renderFigure = (
             overflow: 'visible'
           }}
         >
+          <line
+            x1={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            x2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            y1={noteInfo.cy}
+            y2={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cy - STEM_LENGTH
+                : noteInfo.cy + STEM_LENGTH
+            }
+            stroke="black"
+            stroke-width={STEM_WIDTH}
+          />
+          <Negra
+            key={noteInfo.id}
+            x={noteInfo.cx}
+            y={noteInfo.cy}
+            onClick={onClick}
+          />
+        </svg>
+      )
+      break
+    case NOTE_DURATION.CORCHEA:
+      return (
+        <svg
+          style={{
+            overflow: 'visible'
+          }}
+        >
+          <Plica
+            x={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cx + X_DISTANCE
+                : noteInfo.cx - X_DISTANCE
+            }
+            y={
+              noteInfo.cy > MEDIUM_VALUE
+                ? noteInfo.cy - FLAG_DIF - 3
+                : noteInfo.cy + FLAG_DIF
+            }
+            scaleY={noteInfo.cy > MEDIUM_VALUE ? 1 : -1}
+            scaleX={1.2}
+          />
           <line
             x1={
               noteInfo.cy > MEDIUM_VALUE

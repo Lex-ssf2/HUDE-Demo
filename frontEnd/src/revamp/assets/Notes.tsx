@@ -2,6 +2,8 @@ export interface NoteProps {
   x?: number
   y?: number
   onClick?: (event: MouseEvent) => void
+  scaleX?: number
+  scaleY?: number
 }
 
 export function Blanca({ x = 0, y = 0, onClick }: NoteProps) {
@@ -67,6 +69,42 @@ export function Negra({ x = 0, y = 0, onClick }: NoteProps) {
           fill="#000000"
           opacity="1.00"
           d=" M 102.14 25.13 C 117.44 23.71 133.08 24.18 148.00 28.14 C 162.79 32.69 176.90 40.06 188.16 50.78 C 198.23 60.04 206.22 71.84 209.72 85.16 C 214.22 102.24 212.20 121.12 203.60 136.60 C 193.45 154.48 176.24 167.58 157.38 175.22 C 144.48 179.88 130.80 182.75 117.03 182.24 C 103.27 182.72 89.57 179.96 76.66 175.33 C 58.18 167.94 41.45 155.08 31.33 137.74 C 22.02 122.40 19.70 103.26 24.13 85.96 C 28.15 70.83 37.65 57.52 49.51 47.46 C 64.30 34.99 82.88 27.09 102.14 25.13 Z"
+        />
+      </g>
+    </svg>
+  )
+}
+
+export function Plica({
+  x = 0,
+  y = 0,
+  onClick,
+  scaleX = 1,
+  scaleY = 1
+}: NoteProps) {
+  let scaleTransform = `scale(${scaleX}, ${scaleY})`
+  if (scaleX < 0) {
+    scaleTransform += ` translate(${-240}, 0)`
+  }
+  if (scaleY < 0) {
+    scaleTransform += ` translate(0, ${-274})`
+  }
+  return (
+    <svg
+      width="28pt"
+      height="24pt"
+      viewBox="0 0 240 274"
+      version="1.1"
+      x={x - 13}
+      y={y - 11}
+      onClick={onClick}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g id="#000000ff" transform={scaleTransform}>
+        <path
+          fill="#000000"
+          opacity="1.00"
+          d=" M 69.39 24.36 C 79.61 19.90 73.89 34.80 74.04 40.01 C 76.61 66.15 97.33 88.96 122.02 96.98 C 137.43 102.92 155.45 103.97 167.90 116.13 C 183.24 130.13 184.83 152.65 183.39 172.09 C 182.02 203.26 176.63 237.00 158.34 262.71 C 157.49 262.46 155.79 261.96 154.94 261.71 C 164.11 225.19 151.71 187.04 133.83 155.17 C 119.76 133.80 91.54 134.13 71.59 121.43 C 59.92 115.77 48.71 104.83 48.79 91.01 C 48.01 67.52 51.23 41.09 69.39 24.36 Z"
         />
       </g>
     </svg>
