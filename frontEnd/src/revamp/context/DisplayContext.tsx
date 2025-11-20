@@ -24,4 +24,6 @@ export const MainScoreContext = createContext<{
   selectedNote: SelectedNote
   setSelectedNote: Dispatch<SetStateAction<SelectedNote>>
   setCurrentScale: Dispatch<SetStateAction<number>>
+  hasLoadedFile: boolean
+  setHasLoadedFile: Dispatch<SetStateAction<boolean>>
 } | null>(null)

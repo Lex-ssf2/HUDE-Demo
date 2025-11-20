@@ -23,7 +23,8 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
     setMode,
     setCurrentNoteSize,
     setCurrentScale,
-    setMaxBar
+    setMaxBar,
+    setHasLoadedFile
   } = mainScore
 
   const sendCurrentData = async () => {
@@ -100,6 +101,8 @@ export function MenuButtons({ playMusic }: { playMusic: () => void }) {
           setMaxPentagram(Math.max(output[0].allBar.length, 1))
         } catch (err) {
           setError('Error al cargar el archivo')
+        } finally {
+          setHasLoadedFile((prev) => !prev)
         }
       }
       reader.readAsText(file)

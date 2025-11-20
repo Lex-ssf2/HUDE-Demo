@@ -23,6 +23,7 @@ export function MainScore() {
   const [maxPentagram, setMaxPentagram] = useState<number>(
     START_PENTAGRAM_COUNT
   )
+  const [hasLoadedFile, setHasLoadedFile] = useState<boolean>(false)
   const [initialScale, setInitialScale] = useState(0)
   const [currentScale, setCurrentScale] = useState(1)
   const [maxBar, setMaxBar] = useState<number>(START_BAR_COUNT)
@@ -181,24 +182,24 @@ export function MainScore() {
   }
 
   function onTouchStart(e: TouchEvent) {
-    if (!e.touches || e.touches.length !== 1 || dragging.current) return;
-    dragging.current = true;
-    const touch = e.touches[0];
-    lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    if (!e.touches || e.touches.length !== 1 || dragging.current) return
+    dragging.current = true
+    const touch = e.touches[0]
+    lastMouse.current = { x: touch.clientX, y: touch.clientY }
   }
 
   function onTouchMove(e: TouchEvent) {
-    if (!dragging.current || !e.touches || e.touches.length !== 1) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const dx = touch.clientX - lastMouse.current.x;
-    const dy = touch.clientY - lastMouse.current.y;
-      setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }));
-      lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    if (!dragging.current || !e.touches || e.touches.length !== 1) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    const dx = touch.clientX - lastMouse.current.x
+    const dy = touch.clientY - lastMouse.current.y
+    setPosition((pos) => ({ x: pos.x + dx, y: pos.y + dy }))
+    lastMouse.current = { x: touch.clientX, y: touch.clientY }
   }
 
   function onTouchEnd() {
-    dragging.current = false;
+    dragging.current = false
   }
   return (
     <MainScoreContext.Provider
@@ -217,7 +218,9 @@ export function MainScore() {
         setCurrentNoteSize,
         selectedNote,
         setSelectedNote,
-        setCurrentScale
+        setCurrentScale,
+        hasLoadedFile,
+        setHasLoadedFile
       }}
     >
       <>

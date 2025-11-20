@@ -43,7 +43,8 @@ export function SvgMovableBox({
     setAllPentagramsData,
     allPentagramsData,
     currentNoteSize,
-    mode
+    mode,
+    hasLoadedFile
   } = mainScoreContext
   if (
     !maxHeight[indexPentagram] ||
@@ -84,7 +85,16 @@ export function SvgMovableBox({
     }
     setPentagramLines(pentagram)
   }, [svgViewboxWidth])
-
+  useEffect(() => {
+    const copyPentagram = [...allPentagramsData]
+    let hasClef = copyPentagram[indexBar].clefVisible
+    ;[copyPentagram[indexBar].allBar[indexPentagram]] = updatePosition({
+      currentBar: copyPentagram[indexBar].allBar[indexPentagram],
+      indexBar,
+      hasClef
+    })
+    setAllPentagramsData(copyPentagram)
+  }, [hasLoadedFile])
   //Clicking without touching any note :P inserts note
   const handleSvgClick = (event: MouseEvent) => {
     if (!svgRef.current) return
